@@ -1,0 +1,17 @@
+.vs/
+bin/
+obj/
+
+.idea/
+*.bin
+
+.git/
+.gitignore/
+
+*.exe
+
+.vscode/
+
+x64/
+*.aps
+*.rs

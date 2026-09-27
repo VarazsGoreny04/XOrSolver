@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdlib.h>
+#include <iostream>
+
 template <typename T>
 class Vector
 {
@@ -17,8 +20,10 @@ public:
 	Vector(size_t length) {
 		this->length = length;
 
-		if (this->length < 1)
-			exit(1);
+		if (this->length < 1) {
+			this->vector = nullptr;
+			return;
+		}
 
 		this->vector = new T[this->length];
 
@@ -59,7 +64,7 @@ public:
 		return *this;
 	}
 
-	static Vector<T> add(Vector<T> a, Vector<T> b) {
+	static Vector<T> add(const Vector<T>& a, const Vector<T>& b) {
 		if (a.length != b.length)
 			exit(1);
 
@@ -71,7 +76,19 @@ public:
 		return result;
 	}
 
-	static T product(Vector<T> a, Vector<T> b) {
+	static Vector<T> subtract(const Vector<T>& a, const Vector<T>& b) {
+		if (a.length != b.length)
+			exit(1);
+
+		Vector<T> result = Vector<T>(a.length);
+
+		for (size_t i = 0; i < result.length; ++i)
+			result.vector[i] = a.vector[i] - b.vector[i];
+
+		return result;
+	}
+
+	static T product(const Vector<T>& a, const Vector<T>& b) {
 		if (a.length != b.length)
 			exit(1);
 
@@ -103,23 +120,27 @@ public:
 		return *this;
 	}
 
-	Vector<T> operator+(Vector<T> b) {
+	Vector<T> operator+(const Vector<T>& b) const {
 		return Vector<T>::add(*this, b);
 	}
 
-	T operator*(Vector<T> b) {
+	Vector<T> operator-(const Vector<T>& b) const {
+		return Vector<T>::subtract(*this, b);
+	}
+
+	T operator*(const Vector<T>& b) const {
 		return Vector<T>::product(*this, b);
 	}
 };
 
 template <typename T>
-std::ostream& operator<<(std::ostream& out, Vector<T> a) {
-	 out << "[ " << a.at(0);
+std::ostream& operator<<(std::ostream& out, const Vector<T>& a) {
+	out << std::endl << "[" << a.at(0);
 
 	for (size_t i = 1; i < a.length; ++i)
 		out << ", " << a.at(i);
 
-	out << " ]" << std::endl << std::endl;
+	out << "]" << std::endl;
 
 	return out;
 }

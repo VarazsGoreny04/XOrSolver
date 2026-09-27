@@ -1,9 +1,11 @@
 #pragma once
 
+#include <stdlib.h>
+#include <iostream>
 #include "Vector.h"
 
 template <typename T>
-struct Matrix
+class Matrix
 {
 private:
 	size_t length;
@@ -23,11 +25,13 @@ public:
 	Matrix(size_t lengthX, size_t lengthY) {
 		this->lengthX = lengthX;
 		this->lengthY = lengthY;
-
-		if (this->lengthX < 1 || this->lengthY < 1)
-			exit(1);
-
 		this->length = this->lengthX * this->lengthY;
+
+		if (this->length < 1) {
+			this->matrix = nullptr;
+			return;
+		}
+
 		this->matrix = new T[this->length];
 
 		short* eraser = (short*)matrix;
@@ -53,7 +57,7 @@ public:
 		delete[] matrix;
 	}
 
-	T at(size_t x, size_t y) {
+	T at(size_t x, size_t y) const {
 		if (x >= lengthX || y >= lengthY)
 			exit(1);
 
@@ -69,7 +73,7 @@ public:
 		return *this;
 	}
 
-	static Matrix<T> add(Matrix<T> A, Matrix<T> B) {
+	static Matrix<T> add(const Matrix<T>& A, const Matrix<T>& B) {
 		if (A.lengthX != B.lengthX || A.lengthY != B.lengthY)
 			exit(1);
 
@@ -81,7 +85,19 @@ public:
 		return result;
 	}
 
-	static Vector<T> product(Matrix<T>& A, Vector<T>& b) {
+	static Matrix<T> subtract(const Matrix<T>& A, const Matrix<T>& B) {
+		if (A.lengthX != B.lengthX || A.lengthY != B.lengthY)
+			exit(1);
+
+		Matrix<T> result = Matrix<T>(A.length, B.length);
+
+		for (size_t i = 0; i < result.length; ++i)
+			result.matrix[i] = A.matrix[i] - B.matrix[i];
+
+		return result;
+	}
+
+	static Vector<T> product(const Matrix<T>& A, const Vector<T>& b) {
 		if (A.lengthX != b.length)
 			exit(1);
 
@@ -99,7 +115,7 @@ public:
 		return result;
 	}
 
-	static Matrix<T> product(Matrix<T>& A, Matrix<T>& B) {
+	static Matrix<T> product(const Matrix<T>& A, const Matrix<T>& B) {
 		if (A.lengthX != B.lengthY)
 			exit(1);
 
@@ -137,22 +153,26 @@ public:
 		return *this;
 	}
 
-	Matrix<T> operator+(Matrix<T> B) {
+	Matrix<T> operator+(const Matrix<T>& B) const {
 		return Matrix<T>::add(*this, B);
 	}
 
-	Matrix<T> operator*(Matrix<T> B) {
+	Matrix<T> operator-(const Matrix<T>& B) const {
+		return Matrix<T>::subtract(*this, B);
+	}
+
+	Matrix<T> operator*(const Matrix<T>& B) const {
 		return Matrix<T>::product(*this, B);
 	}
 
-	Vector<T> operator*(Vector<T> b) {
+	Vector<T> operator*(const Vector<T>& b) const {
 		return Matrix<T>::product(*this, b);
 	}
 };
 
 template <typename T>
-std::ostream& operator<<(std::ostream& out, Matrix<T> A) {
-	out << "[" << std::endl;
+std::ostream& operator<<(std::ostream& out, const Matrix<T>& A) {
+	out << std::endl << "[" << std::endl;
 
 	for (size_t y = 0; y < A.lengthY; ++y) {
 		out << "  " << A.at(0, y);
@@ -163,7 +183,7 @@ std::ostream& operator<<(std::ostream& out, Matrix<T> A) {
 		out << ";" << std::endl;
 	}
 
-	out << "]" << std::endl << std::endl;
+	out << "]" << std::endl;
 
 	return out;
 }

@@ -63,7 +63,7 @@ public:
 
 	~NeuralNetwork() {}
 
-	Vector<float> calculate(Vector<float>& inputs) const {
+	Vector<float> forward(Vector<float>& inputs) const {
 		Vector<float> result = Vector<float>(inputs);
 
 		for (size_t i = 0; i < layers - 1; ++i) {
@@ -82,3 +82,18 @@ public:
 		return result;
 	}
 };
+
+static void runNeuralNetwork() {
+	Vector<size_t> layers = Vector<size_t>(3)
+		.put(0, 2)
+		.put(1, 2)
+		.put(2, 1);
+
+	NeuralNetwork nn = NeuralNetwork(layers);
+
+	Vector<float> input = Vector<float>(layers.at(0))
+		.put(0, 1.f)
+		.put(1, 2.f);
+
+	Vector<float> result = nn.forward(input);
+}

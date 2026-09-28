@@ -35,5 +35,11 @@
     <ClInclude Include="ComplexNeuron.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SimpleBackpropagatingNeuron.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComplexBackpropagatingNeuron.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

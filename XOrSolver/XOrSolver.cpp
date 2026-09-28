@@ -1,6 +1,8 @@
 #include <iostream>
 #include "SimpleNeuron.h"
 #include "ComplexNeuron.h"
+#include "SimpleBackpropagatingNeuron.h"
+#include "ComplexBackpropagatingNeuron.h"
 #include "NeuralNetwork.h"
 
 Matrix<float> twiceStates = Matrix<float>(2, 5)
@@ -59,7 +61,9 @@ int main()
 	std::cout << layers << std::endl;*/
 
 	//runSimpleNeuron(twicePlusOneStates);
-	runComplexNeuron(orStates);
+	//runComplexNeuron(orStates);
+	//runSimpleBackpropagatingNeuron(twiceStates);
+	runComplexBackpropagatingNeuron(xorStates);
 
 	return 0;
 }

@@ -9,6 +9,9 @@
 class SimpleBackpropagatingNeuron
 {
 private:
+	float weight;
+	float bias;
+
 	static float randE() {
 		const int precision = 1000;
 
@@ -16,21 +19,6 @@ private:
 		double normal = random * random * M_E;
 
 		return (float)normal;
-	}
-
-public:
-	float weight;
-	float bias;
-
-	SimpleBackpropagatingNeuron() {
-		this->weight = randE();
-		this->bias = 0.f;
-	}
-
-	~SimpleBackpropagatingNeuron() {}
-
-	float forward(float input) const {
-		return weight * input + bias;
 	}
 
 	static float loss(float expected, float predicted) {
@@ -45,16 +33,28 @@ public:
 		return -2.f * loss;
 	}
 
+public:
+	SimpleBackpropagatingNeuron() {
+		this->weight = randE();
+		this->bias = 0.f;
+	}
+
+	~SimpleBackpropagatingNeuron() {}
+
+	float forward(float input) const {
+		return weight * input + bias;
+	}
+
 	float totalLoss(Matrix<float>& dataset) const {
 		if (dataset.lengthX != 2)
 			exit(1);
 
-		float totalLoss = 0.f;
+		float result = 0.f;
 
 		for (size_t i = 0; i < dataset.lengthY; ++i)
-			totalLoss += loss(dataset.at(1, i), forward(dataset.at(0, i)));
+			result += loss(dataset.at(1, i), forward(dataset.at(0, i)));
 
-		return totalLoss / dataset.lengthY;
+		return result / dataset.lengthY;
 	}
 
 	float backward(Matrix<float>& dataset) {
@@ -82,25 +82,25 @@ public:
 
 		return totalLoss(dataset);
 	}
-};
 
-static void runSimpleBackpropagatingNeuron(Matrix<float>& dataset) {
-	SimpleBackpropagatingNeuron n = SimpleBackpropagatingNeuron();
+	static void run(Matrix<float>& dataset) {
+		SimpleBackpropagatingNeuron n = SimpleBackpropagatingNeuron();
 
-	std::cout << "Initial weight: " << n.weight << std::endl
-		<< "Initial bias: " << n.bias << std::endl << std::endl;
+		std::cout << "Initial weight: " << n.weight << std::endl
+			<< "Initial bias: " << n.bias << std::endl << std::endl;
 
-	float loss = 1.f;
-	for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
-		loss = n.backward(dataset);
-		std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
+		float loss = 1.f;
+		for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
+			loss = n.backward(dataset);
+			std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
+		}
+
+		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;
+
+		for (size_t i = 0; i < dataset.lengthY; ++i)
+			std::cout << dataset.at(0, i) << " - " << dataset.at(1, i) << " : " << n.forward(dataset.at(0, i)) << std::endl;
+
+		std::cout << std::endl << "Final weight: " << n.weight << std::endl
+			<< "Final bias: " << n.bias << std::endl << std::endl;
 	}
-
-	std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;
-
-	for (size_t i = 0; i < dataset.lengthY; ++i)
-		std::cout << dataset.at(0, i) << " - " << dataset.at(1, i) << " : " << n.forward(dataset.at(0, i)) << std::endl;
-
-	std::cout << std::endl << "Final weight: " << n.weight << std::endl
-		<< "Final bias: " << n.bias << std::endl << std::endl;
-}
+};

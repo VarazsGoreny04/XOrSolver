@@ -51,19 +51,12 @@ Matrix<float> xorStates = Matrix<float>(3, 4)
 
 int main()
 {
-	/*srand(static_cast<unsigned int>(time(0)));
+	// srand(static_cast<unsigned int>(time(0)));
 
-	Vector<int> layers = Vector<int>(3)
-		.put(0, 2)
-		.put(1, 3)
-		.put(2, 2);
-
-	std::cout << layers << std::endl;*/
-
-	//runSimpleNeuron(twicePlusOneStates);
-	//runComplexNeuron(orStates);
-	//runSimpleBackpropagatingNeuron(twiceStates);
-	runComplexBackpropagatingNeuron(xorStates);
+	// SimpleNeuron::run(twicePlusOneStates);
+	// ComplexNeuron::run(orStates);
+	// SimpleBackpropagatingNeuron::run(twiceStates);
+	// ComplexBackpropagatingNeuron::run(orStates);
 
 	return 0;
 }

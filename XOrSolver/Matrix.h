@@ -22,7 +22,7 @@ public:
 		this->matrix = nullptr;
 	}
 
-	Matrix(size_t lengthX, size_t lengthY) {
+	Matrix(const size_t lengthX, const size_t lengthY) {
 		this->lengthX = lengthX;
 		this->lengthY = lengthY;
 		this->length = this->lengthX * this->lengthY;
@@ -57,14 +57,14 @@ public:
 		delete[] matrix;
 	}
 
-	T at(size_t x, size_t y) const {
+	T at(const size_t x, const size_t y) const {
 		if (x >= lengthX || y >= lengthY)
 			exit(1);
 
 		return matrix[lengthX * y + x];
 	}
 
-	Matrix<T>& put(size_t x, size_t y, T value) {
+	Matrix<T>& put(const size_t x, const size_t y, const T value) {
 		if (x >= lengthX || y >= lengthY)
 			exit(1);
 
@@ -127,6 +127,36 @@ public:
 					result.matrix[A.lengthX * i + j] += A.matrix[A.lengthX * i + k] * B.matrix[A.lengthY * k + j];
 			}
 		}
+
+		return result;
+	}
+
+	static Matrix<T> scale(const Matrix<T>& A, const T b) {
+		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
+
+		for (size_t i = 0; i < result.length; ++i)
+			result.matrix[i] = A.matrix[i] * b;
+
+		return result;
+	}
+
+	static Matrix<T> scale(const Matrix<T>& A, const Matrix<T>& B) {
+		if (A.lengthX != B.lengthX || A.lengthY != B.lengthY)
+			exit(1);
+
+		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
+
+		for (size_t i = 0; i < A.length; ++i)
+			result.matrix[i] = A.matrix[i] * B.matrix[i];
+
+		return result;
+	}
+
+	static Matrix<T> apply(const Matrix<T>& A, T(*func)(const T)) {
+		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
+
+		for (size_t i = 0; i < A.length; ++i)
+			result.matrix[i] = func(A.matrix[i]);
 
 		return result;
 	}

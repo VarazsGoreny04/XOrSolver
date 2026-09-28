@@ -17,7 +17,7 @@ public:
 		this->vector = nullptr;
 	}
 
-	Vector(size_t length) {
+	Vector(const size_t length) {
 		this->length = length;
 
 		if (this->length < 1) {
@@ -48,14 +48,14 @@ public:
 		delete[] vector;
 	}
 
-	T at(size_t i) const {
+	T at(const size_t i) const {
 		if (i >= length)
 			exit(1);
 
 		return vector[i];
 	}
 
-	Vector<T>& put(size_t i, T value) {
+	Vector<T>& put(const size_t i, const T value) {
 		if (i >= length)
 			exit(1);
 
@@ -96,6 +96,36 @@ public:
 
 		for (size_t i = 1; i < a.length; ++i)
 			result = result + a.vector[i] * b.vector[i];
+
+		return result;
+	}
+
+	static Vector<T> scale(const Vector<T>& a, const T b) {
+		Vector<T> result = Vector<T>(a.length);
+
+		for (size_t i = 0; i < a.length; ++i)
+			result.vector[i] = a.vector[i] * b;
+
+		return result;
+	}
+
+	static Vector<T> scale(const Vector<T>& a, const Vector<T>& b) {
+		if (a.length != b.length)
+			exit(1);
+
+		Vector<T> result = Vector<T>(a.length);
+
+		for (size_t i = 0; i < a.length; ++i)
+			result.vector[i] = a.vector[i] * b.vector[i];
+
+		return result;
+	}
+
+	static Vector<T> apply(const Vector<T>& a, T (*func)(const T)) {
+		Vector<T> result = Vector<T>(a.length);
+
+		for (size_t i = 0; i < a.length; ++i)
+			result.vector[i] = func(a.vector[i]);
 
 		return result;
 	}

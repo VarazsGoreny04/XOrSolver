@@ -4,7 +4,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-#include "Vector.h"
 #include "Matrix.h"
 
 class SimpleNeuron
@@ -55,7 +54,7 @@ public:
 
 	float backward(Matrix<float>& dataset) {
 		const float epsilon = 1e-5f;
-		const float rate = 100;
+		const float rate = 1e+2f;
 
 		float initialWeight = weight;
 		float initialBias = bias;
@@ -78,14 +77,14 @@ public:
 	}
 };
 
-static void runNeuron(Matrix<float>& dataset) {
+static void runSimpleNeuron(Matrix<float>& dataset) {
 	SimpleNeuron n = SimpleNeuron();
 
 	std::cout << "Initial weight: " << n.weight << std::endl
 			  << "Initial bias: " << n.bias << std::endl << std::endl;
 
 	float loss = 1.f;
-	for (size_t i = 0; i < 10000 && loss > 1e-6; ++i) {
+	for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
 		loss = n.backward(dataset);
 		std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
 	}
@@ -93,7 +92,7 @@ static void runNeuron(Matrix<float>& dataset) {
 	std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;
 
 	for (size_t i = 0; i < dataset.lengthY; ++i)
-		std::cout << dataset.at(0, i) << " - " << dataset.at(1, i) << " : " << n.loss(dataset.at(1, i), n.forward(dataset.at(0, i))) << std::endl;
+		std::cout << dataset.at(0, i) << " - " << dataset.at(1, i) << " : " << n.forward(dataset.at(0, i)) << std::endl;
 
 	std::cout << std::endl << "Final weight: " << n.weight << std::endl
 		<< "Final bias: " << n.bias << std::endl << std::endl;

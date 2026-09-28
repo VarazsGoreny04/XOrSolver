@@ -126,6 +126,7 @@
     <ClCompile Include="XOrSolver.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ComplexNeuron.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="NeuralNetwork.h" />
     <ClInclude Include="SimpleNeuron.h" />

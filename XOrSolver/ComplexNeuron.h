@@ -99,10 +99,10 @@ public:
 		for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
 
-			std::cout << "Current loss: " << loss <<
+			/*std::cout << "Current loss: " << loss <<
 				"  Current weight1: " << n.weight1 <<
 				"  Current weight2: " << n.weight2 <<
-				"  Current bias: " << n.bias << std::endl;
+				"  Current bias: " << n.bias << std::endl;*/
 		}
 
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;

@@ -84,7 +84,7 @@ public:
 		float loss = 1.f;
 		for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
-			std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
+			//std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
 		}
 
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;

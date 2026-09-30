@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <functional>
 
 template <typename T>
 class Vector
@@ -121,11 +122,11 @@ public:
 		return result;
 	}
 
-	static Vector<T> apply(const Vector<T>& a, T (*func)(const T)) {
+	static Vector<T> apply(const Vector<T>& a, std::function<T(const T)> predicate) {
 		Vector<T> result = Vector<T>(a.length);
 
 		for (size_t i = 0; i < a.length; ++i)
-			result.vector[i] = func(a.vector[i]);
+			result.vector[i] = predicate(a.vector[i]);
 
 		return result;
 	}
@@ -165,12 +166,15 @@ public:
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Vector<T>& a) {
-	out << std::endl << "[" << a.at(0);
+	out << "[ ";
+
+	if (a.length > 0)
+		out << a.at(0);
 
 	for (size_t i = 1; i < a.length; ++i)
 		out << ", " << a.at(i);
 
-	out << "]" << std::endl;
+	out << " ]";
 
 	return out;
 }

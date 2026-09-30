@@ -22,23 +22,23 @@ private:
 		return (float)normal;
 	}
 
-	static float activation(float x) {
+	static float activation(const float x) {
 		return 1.f / (1.f + expf(-x));
 	}
 
-	static float activationDerivative(float x) {
+	static float activationDerivative(const float x) {
 		float temp = activation(x);
 
 		return temp * (1.f - temp);
 	}
 
-	static float loss(float expected, float predicted) {
+	static float loss(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
 		return loss * loss;
 	}
 
-	static float lossDerivative(float expected, float predicted) {
+	static float lossDerivative(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
 		return -2.f * loss;
@@ -53,11 +53,11 @@ public:
 
 	~ComplexBackpropagatingNeuron() {}
 
-	float forward(float input1, float input2) const {
+	float forward(const float input1, const float input2) const {
 		return activation(weight1 * input1 + weight2 * input2 + bias);
 	}
 
-	float totalLoss(Matrix<float>& dataset) const {
+	float totalLoss(const Matrix<float>& dataset) const {
 		if (dataset.lengthX != 3)
 			exit(1);
 
@@ -69,11 +69,10 @@ public:
 		return result / dataset.lengthY;
 	}
 
-	float backward(Matrix<float>& dataset) {
+	float backward(const Matrix<float>& dataset) {
 		if (dataset.lengthX != 3)
 			exit(1);
 
-		const float epsilon = 1e-2f;
 		const float rate = 1e+1f;
 
 		float weightChange1 = 0.f;
@@ -101,7 +100,7 @@ public:
 		return totalLoss(dataset);
 	}
 
-	static void run(Matrix<float>& dataset) {
+	static void run(const Matrix<float>& dataset) {
 		ComplexBackpropagatingNeuron n = ComplexBackpropagatingNeuron();
 
 		std::cout << "Initial weight1: " << n.weight1 << std::endl
@@ -112,10 +111,10 @@ public:
 		for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
 
-			std::cout << "Current loss: " << loss <<
+			/*std::cout << "Current loss: " << loss <<
 				"  Current weight1: " << n.weight1 <<
 				"  Current weight2: " << n.weight2 <<
-				"  Current bias: " << n.bias << std::endl;
+				"  Current bias: " << n.bias << std::endl;*/
 		}
 
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;

@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <functional>
 #include "Vector.h"
 
 template <typename T>
@@ -26,6 +27,9 @@ public:
 		this->lengthX = lengthX;
 		this->lengthY = lengthY;
 		this->length = this->lengthX * this->lengthY;
+
+		if (this->length < 1 && (this->lengthX > 0 || this->lengthY > 0))
+			exit(1);
 
 		if (this->length < 1) {
 			this->matrix = nullptr;
@@ -73,11 +77,22 @@ public:
 		return *this;
 	}
 
+	static Matrix<T> transpose(const Matrix<T>& A) {
+		Matrix<T> result = Matrix<T>(A.lengthY, A.lengthX);
+
+		for (size_t y = 0; y < A.lengthY; ++y) {
+			for (size_t x = 0; x < A.lengthX; ++x)
+				result.matrix[A.lengthY * y + x] = A.matrix[A.lengthY * x + y];
+		}
+
+		return result;
+	}
+
 	static Matrix<T> add(const Matrix<T>& A, const Matrix<T>& B) {
 		if (A.lengthX != B.lengthX || A.lengthY != B.lengthY)
 			exit(1);
 
-		Matrix<T> result = Matrix<T>(A.length, B.length);
+		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < result.length; ++i)
 			result.matrix[i] = A.matrix[i] + B.matrix[i];
@@ -103,13 +118,13 @@ public:
 
 		Vector<T> result = Vector<T>(A.lengthY);
 
-		for (size_t i = 0; i < A.lengthY; ++i) {
+		for (size_t y = 0; y < A.lengthY; ++y) {
 			float temp = 0;
 
-			for (size_t j = 0; j < A.lengthX; ++j)
-				temp += A.matrix[A.lengthX * i + j] * b.at(j);
+			for (size_t x = 0; x < A.lengthX; ++x)
+				temp += A.matrix[A.lengthX * y + x] * b.at(x);
 
-			result.put(i, temp);
+			result.put(y, temp);
 		}
 
 		return result;
@@ -152,11 +167,24 @@ public:
 		return result;
 	}
 
-	static Matrix<T> apply(const Matrix<T>& A, T(*func)(const T)) {
+	static Matrix<T> gradiant(const Vector<T>& a, const Vector<T>& b) {
+		Matrix<T> result = Matrix<T>(b.length, a.length);
+
+		for (size_t y = 0; y < a.length; ++y) {
+			T aY = a.at(y);
+
+			for (size_t x = 0; x < b.length; ++x)
+				result.matrix[a.length * y + x] = aY * b.at(x);
+		}
+
+		return result;
+	}
+
+	static Matrix<T> apply(const Matrix<T>& A, std::function<T(const T)> predicate) {
 		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < A.length; ++i)
-			result.matrix[i] = func(A.matrix[i]);
+			result.matrix[i] = predicate(A.matrix[i]);
 
 		return result;
 	}
@@ -202,18 +230,18 @@ public:
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Matrix<T>& A) {
-	out << std::endl << "[" << std::endl;
+	out << "[ ";
 
 	for (size_t y = 0; y < A.lengthY; ++y) {
-		out << "  " << A.at(0, y);
+		out << A.at(0, y);
 
 		for (size_t x = 1; x < A.lengthX; ++x)
 			out << ", " << A.at(x, y);
 
-		out << ";" << std::endl;
+		out << "; ";
 	}
 
-	out << "]" << std::endl;
+	out << "]";
 
 	return out;
 }

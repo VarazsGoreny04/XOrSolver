@@ -21,13 +21,13 @@ private:
 		return (float)normal;
 	}
 
-	static float loss(float expected, float predicted) {
+	static float loss(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
 		return loss * loss;
 	}
 
-	static float lossDerivative(float expected, float predicted) {
+	static float lossDerivative(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
 		return -2.f * loss;
@@ -41,11 +41,11 @@ public:
 
 	~SimpleBackpropagatingNeuron() {}
 
-	float forward(float input) const {
+	float forward(const float input) const {
 		return weight * input + bias;
 	}
 
-	float totalLoss(Matrix<float>& dataset) const {
+	float totalLoss(const Matrix<float>& dataset) const {
 		if (dataset.lengthX != 2)
 			exit(1);
 
@@ -57,11 +57,10 @@ public:
 		return result / dataset.lengthY;
 	}
 
-	float backward(Matrix<float>& dataset) {
+	float backward(const Matrix<float>& dataset) {
 		if (dataset.lengthX != 2)
 			exit(1);
 
-		const float epsilon = 1e-5f;
 		const float rate = 1e-1f;
 
 		float weightChange = 0.f;
@@ -83,7 +82,7 @@ public:
 		return totalLoss(dataset);
 	}
 
-	static void run(Matrix<float>& dataset) {
+	static void run(const Matrix<float>& dataset) {
 		SimpleBackpropagatingNeuron n = SimpleBackpropagatingNeuron();
 
 		std::cout << "Initial weight: " << n.weight << std::endl
@@ -92,7 +91,7 @@ public:
 		float loss = 1.f;
 		for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
-			std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
+			//std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
 		}
 
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;

@@ -69,6 +69,5 @@ int main()
 		NeuralNetwork::run(datasetMV);
 	}
 
-
 	return 0;
 }

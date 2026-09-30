@@ -116,7 +116,7 @@ private:
 			biasChanges.put(layers - 1, cWrtATimesAWrtZ);
 		}
 
-		for (long long layer = layers - 2; layer >= 0; --layer) {
+		for (size_t layer = layers - 1; layer-- > 0;) {
 			Matrix<float> endAndWeights = Matrix<float>::scale(weightChanges.at(layer + 1), weights.at(layer + 1));
 
 			Vector<float> endAndWeightsSummed = Vector<float>(endAndWeights.lengthX);

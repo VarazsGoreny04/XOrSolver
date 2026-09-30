@@ -82,7 +82,7 @@ public:
 
 		for (size_t y = 0; y < A.lengthY; ++y) {
 			for (size_t x = 0; x < A.lengthX; ++x)
-				result.matrix[A.lengthY * y + x] = A.matrix[A.lengthY * x + y];
+				result.matrix[A.lengthY * x + y] = A.matrix[A.lengthX * y + x];
 		}
 
 		return result;
@@ -174,7 +174,7 @@ public:
 			T aY = a.at(y);
 
 			for (size_t x = 0; x < b.length; ++x)
-				result.matrix[a.length * y + x] = aY * b.at(x);
+				result.matrix[b.length * y + x] = aY * b.at(x);
 		}
 
 		return result;

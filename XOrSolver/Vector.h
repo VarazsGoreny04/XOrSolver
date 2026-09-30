@@ -31,9 +31,8 @@ public:
 		short* eraser = (short*)vector;
 		size_t eraserLength = this->length * (sizeof(T) / sizeof(short));
 
-		for (size_t i = 0; i < eraserLength; ++i) {
+		for (size_t i = 0; i < eraserLength; ++i)
 			eraser[i] = 0;
-		}
 	}
 
 	Vector(const Vector& other)

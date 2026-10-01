@@ -1,8 +1,9 @@
 #pragma once
 
-#include <stdlib.h>
+#include <cassert>
 #include <iostream>
 #include <functional>
+#include <stdlib.h>
 #include "Vector.h"
 
 template <typename T>
@@ -28,22 +29,14 @@ public:
 		this->lengthY = lengthY;
 		this->length = this->lengthX * this->lengthY;
 
-		if (this->length < 1 && (this->lengthX > 0 || this->lengthY > 0))
-			exit(1);
+		assert(this->lengthX > 0 && this->lengthY > 0);
 
 		if (this->length < 1) {
 			this->matrix = nullptr;
 			return;
 		}
 
-		this->matrix = new T[this->length];
-
-		short* eraser = (short*)matrix;
-		size_t eraserLength = this->length * (sizeof(T) / sizeof(short));
-
-		for (size_t i = 0; i < eraserLength; ++i) {
-			eraser[i] = 0;
-		}
+		this->matrix = new T[this->length]{};
 	}
 
 	Matrix(const Matrix& other)
@@ -62,15 +55,13 @@ public:
 	}
 
 	T at(const size_t x, const size_t y) const {
-		if (x >= lengthX || y >= lengthY)
-			exit(1);
+		assert(x < lengthX && y < lengthY);
 
 		return matrix[lengthX * y + x];
 	}
 
 	Matrix<T>& put(const size_t x, const size_t y, const T value) {
-		if (x >= lengthX || y >= lengthY)
-			exit(1);
+		assert(x < lengthX && y < lengthY);
 
 		matrix[lengthX * y + x] = value;
 
@@ -89,8 +80,8 @@ public:
 	}
 
 	static Matrix<T> add(const Matrix<T>& A, const Matrix<T>& B) {
-		if (A.lengthX != B.lengthX || A.lengthY != B.lengthY)
-			exit(1);
+		assert(A.lengthX == B.lengthX);
+		assert(A.lengthY == B.lengthY);
 
 		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
 
@@ -101,10 +92,10 @@ public:
 	}
 
 	static Matrix<T> subtract(const Matrix<T>& A, const Matrix<T>& B) {
-		if (A.lengthX != B.lengthX || A.lengthY != B.lengthY)
-			exit(1);
+		assert(A.lengthX == B.lengthX);
+		assert(A.lengthY == B.lengthY);
 
-		Matrix<T> result = Matrix<T>(A.length, B.length);
+		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < result.length; ++i)
 			result.matrix[i] = A.matrix[i] - B.matrix[i];
@@ -113,13 +104,12 @@ public:
 	}
 
 	static Vector<T> product(const Matrix<T>& A, const Vector<T>& b) {
-		if (A.lengthX != b.length)
-			exit(1);
+		assert(A.lengthX == b.length);
 
 		Vector<T> result = Vector<T>(A.lengthY);
 
 		for (size_t y = 0; y < A.lengthY; ++y) {
-			float temp = 0;
+			T temp = 0;
 
 			for (size_t x = 0; x < A.lengthX; ++x)
 				temp += A.matrix[A.lengthX * y + x] * b.at(x);
@@ -131,15 +121,18 @@ public:
 	}
 
 	static Matrix<T> product(const Matrix<T>& A, const Matrix<T>& B) {
-		if (A.lengthX != B.lengthY)
-			exit(1);
+		assert(A.lengthX == B.lengthY);
 
 		Matrix<T> result = Matrix<T>(B.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < A.lengthY; ++i) {
 			for (size_t j = 0; j < B.lengthX; ++j) {
+				T temp = 0;
+
 				for (size_t k = 0; k < A.lengthX; ++k)
-					result.matrix[A.lengthX * i + j] += A.matrix[A.lengthX * i + k] * B.matrix[A.lengthY * k + j];
+					temp += A.matrix[A.lengthX * i + k] * B.matrix[B.lengthX * k + j];
+
+				result.matrix[B.lengthX * i + j] = temp;
 			}
 		}
 
@@ -156,8 +149,8 @@ public:
 	}
 
 	static Matrix<T> scale(const Matrix<T>& A, const Matrix<T>& B) {
-		if (A.lengthX != B.lengthX || A.lengthY != B.lengthY)
-			exit(1);
+		assert(A.lengthX == B.lengthX);
+		assert(A.lengthY == B.lengthY);
 
 		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
 
@@ -167,7 +160,7 @@ public:
 		return result;
 	}
 
-	static Matrix<T> gradiant(const Vector<T>& a, const Vector<T>& b) {
+	static Matrix<T> gradient(const Vector<T>& a, const Vector<T>& b) {
 		Matrix<T> result = Matrix<T>(b.length, a.length);
 
 		for (size_t y = 0; y < a.length; ++y) {

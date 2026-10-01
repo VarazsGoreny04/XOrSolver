@@ -1,9 +1,10 @@
 #pragma once
 
+#include <cassert>
+#include <iostream>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
-#include <iostream>
 #include "Matrix.h"
 
 class SimpleNeuron
@@ -40,8 +41,7 @@ public:
 	}
 
 	float totalLoss(const Matrix<float>& dataset) const {
-		if (dataset.lengthX != 2)
-			exit(1);
+		assert(dataset.lengthX == 2);
 
 		float result = 0.f;
 
@@ -84,6 +84,7 @@ public:
 		float loss = 1.f;
 		for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
+			
 			//std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
 		}
 

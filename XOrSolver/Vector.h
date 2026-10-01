@@ -1,8 +1,9 @@
 #pragma once
 
-#include <stdlib.h>
+#include <cassert>
 #include <iostream>
 #include <functional>
+#include <stdlib.h>
 
 template <typename T>
 class Vector
@@ -26,13 +27,7 @@ public:
 			return;
 		}
 
-		this->vector = new T[this->length];
-
-		short* eraser = (short*)vector;
-		size_t eraserLength = this->length * (sizeof(T) / sizeof(short));
-
-		for (size_t i = 0; i < eraserLength; ++i)
-			eraser[i] = 0;
+		this->vector = new T[this->length]{};
 	}
 
 	Vector(const Vector& other)
@@ -49,15 +44,13 @@ public:
 	}
 
 	T at(const size_t i) const {
-		if (i >= length)
-			exit(1);
+		assert(i < length);
 
 		return vector[i];
 	}
 
 	Vector<T>& put(const size_t i, const T value) {
-		if (i >= length)
-			exit(1);
+		assert(i < length);
 
 		vector[i] = value;
 
@@ -65,8 +58,7 @@ public:
 	}
 
 	static Vector<T> add(const Vector<T>& a, const Vector<T>& b) {
-		if (a.length != b.length)
-			exit(1);
+		assert(a.length == b.length);
 
 		Vector<T> result = Vector<T>(a.length);
 
@@ -77,8 +69,7 @@ public:
 	}
 
 	static Vector<T> subtract(const Vector<T>& a, const Vector<T>& b) {
-		if (a.length != b.length)
-			exit(1);
+		assert(a.length == b.length);
 
 		Vector<T> result = Vector<T>(a.length);
 
@@ -89,8 +80,7 @@ public:
 	}
 
 	static T product(const Vector<T>& a, const Vector<T>& b) {
-		if (a.length != b.length)
-			exit(1);
+		assert(a.length == b.length);
 
 		T result = a.vector[0] * b.vector[0];
 
@@ -110,8 +100,7 @@ public:
 	}
 
 	static Vector<T> scale(const Vector<T>& a, const Vector<T>& b) {
-		if (a.length != b.length)
-			exit(1);
+		assert(a.length == b.length);
 
 		Vector<T> result = Vector<T>(a.length);
 

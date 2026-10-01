@@ -1,9 +1,10 @@
 #pragma once
 
+#include <cassert>
+#include <iostream>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
-#include <iostream>
 #include "Matrix.h"
 
 class ComplexNeuron
@@ -46,8 +47,7 @@ public:
 	}
 
 	float totalLoss(const Matrix<float>& dataset) const {
-		if (dataset.lengthX != 3)
-			exit(1);
+		assert(dataset.lengthX == 3);
 
 		float result = 0.f;
 

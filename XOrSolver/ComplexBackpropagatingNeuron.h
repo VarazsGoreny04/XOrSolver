@@ -1,9 +1,10 @@
 #pragma once
 
+#include <cassert>
+#include <iostream>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
-#include <iostream>
 #include "Matrix.h"
 
 class ComplexBackpropagatingNeuron
@@ -41,7 +42,7 @@ private:
 	static float lossDerivative(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
-		return -2.f * loss;
+		return 2.f * loss;
 	}
 
 public:
@@ -58,8 +59,7 @@ public:
 	}
 
 	float totalLoss(const Matrix<float>& dataset) const {
-		if (dataset.lengthX != 3)
-			exit(1);
+		assert(dataset.lengthX == 3);
 
 		float result = 0.f;
 
@@ -70,8 +70,7 @@ public:
 	}
 
 	float backward(const Matrix<float>& dataset) {
-		if (dataset.lengthX != 3)
-			exit(1);
+		assert(dataset.lengthX == 3);
 
 		const float rate = 1e+1f;
 
@@ -93,9 +92,9 @@ public:
 			biasChange += ldXAd;
 		}
 
-		this->weight1 += (weightChange1 / dataset.lengthY) * rate;
-		this->weight2 += (weightChange2 / dataset.lengthY) * rate;
-		this->bias += (biasChange / dataset.lengthY) * rate;
+		this->weight1 -= (weightChange1 / dataset.lengthY) * rate;
+		this->weight2 -= (weightChange2 / dataset.lengthY) * rate;
+		this->bias -= (biasChange / dataset.lengthY) * rate;
 
 		return totalLoss(dataset);
 	}

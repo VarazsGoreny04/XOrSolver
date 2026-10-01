@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <vector>
@@ -47,14 +48,14 @@ private:
 		return (float)normal;
 	}
 
-	static float activation(const float x) {
-		return 1.f / (1.f + expf(-x));
+	static Vector<float> activation(const Vector<float> xs) {
+		return Vector<float>::apply(xs, [](float x) -> float { return 1.f / (1.f + expf(-x)); });
 	}
 
-	static float activationDerivative(const float x) {
-		float temp = activation(x);
+	static Vector<float> activationDerivative(const Vector<float> xs) {
+		Vector<float> activated = activation(xs);
 
-		return temp * (1.f - temp);
+		return Vector<float>::apply(activated, [](float x) -> float { return  x * (1.f - x); });
 	}
 
 	static Vector<float> loss(const Vector<float> expected, const  Vector<float> predicted) {
@@ -66,12 +67,11 @@ private:
 	static Vector<float> lossDerivative(const Vector<float> expected, const Vector<float> predicted) {
 		Vector<float> loss = predicted - expected;
 
-		return Vector<float>::scale(loss, -2.f);
+		return Vector<float>::scale(loss, 2.f);
 	}
 
 	std::vector<LayerResults> getPartialResults(const Vector<float>& input) const {
-		if (input.length != inputs)
-			exit(1);
+		assert(input.length == inputs);
 
 		Vector<float> partialResult = Vector<float>(input);
 
@@ -87,8 +87,8 @@ private:
 			Vector<float> biases = this->biases.at(i);
 
 			Vector<float> weightedInputs = weights * partialResult + biases;
-			Vector<float> activationValues = Vector<float>::apply(weightedInputs, activation);
-			Vector<float> dActivationValues = Vector<float>::apply(weightedInputs, activationDerivative);
+			Vector<float> activationValues = activation(weightedInputs);
+			Vector<float> dActivationValues = activationDerivative(weightedInputs);
 
 			result.push_back(LayerResults(weightedInputs, activationValues, dActivationValues));
 		}
@@ -97,44 +97,30 @@ private:
 	}
 
 	void backwardOneData(const Vector<float>& xs, const Vector<float>& ys, Vector<Matrix<float>>& weightChanges, Vector<Vector<float>>& biasChanges) const {
-		if (weightChanges.length != layers || biasChanges.length != layers || xs.length != inputs || ys.length != outputs) // csak debuging
-			exit(1);
+		assert(weightChanges.length == layers);
+		assert(biasChanges.length == layers);
+		assert(xs.length == inputs);
+		assert(ys.length == outputs);
 
 		std::vector<LayerResults> partialResults = getPartialResults(xs);
+		Vector<float> nodeValues;
 
-		/*if (partialResults.size() != layers + 1) // csak debuging
-			exit(1);*/
+		assert(partialResults.size() == layers + 1);
 
 		std::vector<LayerResults>::iterator layerResult = --(partialResults.end());
 
 		{
-			Vector<float> cWrtATimesAWrtZ = Vector<float>::scale(lossDerivative(ys, (*layerResult).activationValues), (*layerResult).dActivationValues);
+			nodeValues = Vector<float>::scale(lossDerivative(ys, (*layerResult).activationValues), (*layerResult).dActivationValues);
 
-			--layerResult;
-
-			weightChanges.put(layers - 1, Matrix<float>::gradiant(cWrtATimesAWrtZ, (*layerResult).activationValues));
-			biasChanges.put(layers - 1, cWrtATimesAWrtZ);
+			weightChanges.put(layers - 1, Matrix<float>::gradient(nodeValues, (*(--layerResult)).activationValues));
+			biasChanges.put(layers - 1, nodeValues);
 		}
 
 		for (size_t layer = layers - 1; layer-- > 0;) {
-			Matrix<float> endAndWeights = Matrix<float>::scale(weightChanges.at(layer + 1), weights.at(layer + 1));
+			nodeValues = Vector<float>::scale(Matrix<float>::transpose(weights.at(layer + 1)) * nodeValues, (*layerResult).dActivationValues);
 
-			Vector<float> endAndWeightsSummed = Vector<float>(endAndWeights.lengthX);
-			for (size_t x = 0; x < endAndWeights.lengthX; ++x) {
-				float sum = 0.f;
-
-				for (size_t y = 0; y < endAndWeights.lengthY; ++y)
-					sum += endAndWeights.at(x, y);
-
-				endAndWeightsSummed.put(x, sum);
-			}
-
-			Vector<float> endAndWeightsTimesA = Vector<float>::scale(endAndWeightsSummed, (*layerResult).dActivationValues);
-			
-			--layerResult;
-
-			weightChanges.put(layer, Matrix<float>::gradiant(endAndWeightsTimesA, (*layerResult).activationValues));
-			biasChanges.put(layer, endAndWeightsTimesA);
+			weightChanges.put(layer, Matrix<float>::gradient(nodeValues, (*(--layerResult)).activationValues));
+			biasChanges.put(layer, nodeValues);
 		}
 	}
 
@@ -144,8 +130,7 @@ public:
 		this->inputs = layers[0];
 		this->outputs = layers[this->layers];
 
-		if (this->layers < 1)
-			exit(1);
+		assert(this->layers > 0);
 
 		this->weights = Vector<Matrix<float>>(this->layers);
 		this->biases = Vector<Vector<float>>(this->layers);
@@ -162,8 +147,6 @@ public:
 			for (size_t y = 0; y < next; ++y) {
 				for (size_t x = 0; x < prev; ++x)
 					currentWeights.put(x, y, randE());
-
-				currentBiases.put(y, 0);
 			}
 
 			this->weights.put(i - 1, currentWeights);
@@ -176,8 +159,7 @@ public:
 	~NeuralNetwork() {}
 
 	Vector<float> forward(const Vector<float>& input) const {
-		if (input.length != inputs)
-			exit(1);
+		assert(input.length == inputs);
 
 		Vector<float> result = Vector<float>(input);
 
@@ -185,15 +167,14 @@ public:
 			Matrix<float> weight = weights.at(i);
 			Vector<float> bias = biases.at(i);
 
-			result = Vector<float>::apply(weight * result + bias, activation);
+			result = activation(weight * result + bias);
 		}
 
 		return result;
 	}
 
 	float totalLoss(const Matrix<Vector<float>>& dataset) const {
-		if (dataset.lengthX != 2)
-			exit(1);
+		assert(dataset.lengthX == 2);
 
 		float totalLoss = 0.f;
 
@@ -208,10 +189,9 @@ public:
 	}
 
 	float backward(const Matrix<Vector<float>>& dataset) {
-		if (dataset.lengthX != 2)
-			exit(1);
+		assert(dataset.lengthX == 2);
 
-		const float rate = 1e+1f;
+		const float rate = 1e-5f;
 
 		Vector<Matrix<float>> allWeightChanges = Vector<Matrix<float>>(weights.length);
 		Vector<Vector<float>> allBiasChanges = Vector<Vector<float>>(biases.length);
@@ -231,16 +211,16 @@ public:
 
 		float scalar = rate / dataset.lengthY;
 
-		weights = weights + Vector<Matrix<float>>::apply(allWeightChanges,
+		weights = weights - Vector<Matrix<float>>::apply(allWeightChanges,
 			[scalar](const Matrix<float>& A) -> Matrix<float> { return Matrix<float>::scale(A, scalar); });
-		biases = biases + Vector<Vector<float>>::apply(allBiasChanges,
+		biases = biases - Vector<Vector<float>>::apply(allBiasChanges,
 			[scalar](const Vector<float>& a) -> Vector<float> { return Vector<float>::scale(a, scalar); });
 
 		return totalLoss(dataset);
 	}
 
 	static void run(const Matrix<Vector<float>>& dataset) {
-		std::vector<size_t> layers = {2, 2, 1};
+		std::vector<size_t> layers = { 2, 2, 1 };
 
 		NeuralNetwork n = NeuralNetwork(layers);
 
@@ -248,9 +228,10 @@ public:
 			<< "Initial biases: " << n.biases << std::endl << std::endl;
 
 		float loss = 1.f;
-		for (size_t i = 0; i < 1e+3 && loss > 1e-6; ++i) {
+		for (size_t i = 0; i < 1e+5 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
-			//std::cout << "Current loss: " << loss << "  Current weights: " << n.weights << "  Current biases: " << n.biases << std::endl;
+
+			std::cout << "Current loss: " << loss << "  Current weights: " << n.weights << "  Current biases: " << n.biases << std::endl << std::endl;
 		}
 
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;

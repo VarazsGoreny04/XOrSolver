@@ -1,9 +1,10 @@
 #pragma once
 
+#include <cassert>
+#include <iostream>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
-#include <iostream>
 #include "Matrix.h"
 
 class SimpleBackpropagatingNeuron
@@ -30,7 +31,7 @@ private:
 	static float lossDerivative(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
-		return -2.f * loss;
+		return 2.f * loss;
 	}
 
 public:
@@ -46,8 +47,7 @@ public:
 	}
 
 	float totalLoss(const Matrix<float>& dataset) const {
-		if (dataset.lengthX != 2)
-			exit(1);
+		assert(dataset.lengthX == 2);
 
 		float result = 0.f;
 
@@ -58,8 +58,7 @@ public:
 	}
 
 	float backward(const Matrix<float>& dataset) {
-		if (dataset.lengthX != 2)
-			exit(1);
+		assert(dataset.lengthX == 2);
 
 		const float rate = 1e-1f;
 
@@ -76,8 +75,8 @@ public:
 			biasChange += temp;
 		}
 
-		this->weight += (weightChange / dataset.lengthY) * rate;
-		this->bias += (biasChange / dataset.lengthY) * rate;
+		this->weight -= (weightChange / dataset.lengthY) * rate;
+		this->bias -= (biasChange / dataset.lengthY) * rate;
 
 		return totalLoss(dataset);
 	}
@@ -91,6 +90,7 @@ public:
 		float loss = 1.f;
 		for (size_t i = 0; i < 1e+4 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
+			
 			//std::cout << "Current loss: " << loss << "  Current weight: " << n.weight << "  Current bias: " << n.bias << std::endl;
 		}
 

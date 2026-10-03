@@ -9,11 +9,25 @@ template <typename T>
 class Vector
 {
 private:
+	size_t length;
 	T* vector;
 
-public:
-	size_t length;
+	void maker(int index, T value) {
+		assert(index + 1 == length);
 
+		vector[index] = value;
+	}
+
+	template <typename... Args>
+	void maker(int index, T value, Args... values) {
+		assert(index < length);
+
+		vector[index] = value;
+
+		maker(index + 1, values...);
+	}
+
+public:
 	Vector() {
 		this->length = 0;
 		this->vector = nullptr;
@@ -43,6 +57,17 @@ public:
 		delete[] vector;
 	}
 
+	const size_t getLength() const {
+		return length;
+	}
+
+	template <typename... Args>
+	Vector<T>& make(Args... values) {
+		maker(0, values...);
+
+		return *this;
+	}
+
 	T at(const size_t i) const {
 		assert(i < length);
 
@@ -60,7 +85,7 @@ public:
 	static Vector<T> add(const Vector<T>& a, const Vector<T>& b) {
 		assert(a.length == b.length);
 
-		Vector<T> result = Vector<T>(a.length);
+		Vector<T> result(a.length);
 
 		for (size_t i = 0; i < result.length; ++i)
 			result.vector[i] = a.vector[i] + b.vector[i];
@@ -71,7 +96,7 @@ public:
 	static Vector<T> subtract(const Vector<T>& a, const Vector<T>& b) {
 		assert(a.length == b.length);
 
-		Vector<T> result = Vector<T>(a.length);
+		Vector<T> result(a.length);
 
 		for (size_t i = 0; i < result.length; ++i)
 			result.vector[i] = a.vector[i] - b.vector[i];
@@ -82,16 +107,16 @@ public:
 	static T product(const Vector<T>& a, const Vector<T>& b) {
 		assert(a.length == b.length);
 
-		T result = a.vector[0] * b.vector[0];
+		T result{};
 
-		for (size_t i = 1; i < a.length; ++i)
+		for (size_t i = 0; i < a.length; ++i)
 			result = result + a.vector[i] * b.vector[i];
 
 		return result;
 	}
 
 	static Vector<T> scale(const Vector<T>& a, const T b) {
-		Vector<T> result = Vector<T>(a.length);
+		Vector<T> result(a.length);
 
 		for (size_t i = 0; i < a.length; ++i)
 			result.vector[i] = a.vector[i] * b;
@@ -102,7 +127,7 @@ public:
 	static Vector<T> scale(const Vector<T>& a, const Vector<T>& b) {
 		assert(a.length == b.length);
 
-		Vector<T> result = Vector<T>(a.length);
+		Vector<T> result(a.length);
 
 		for (size_t i = 0; i < a.length; ++i)
 			result.vector[i] = a.vector[i] * b.vector[i];
@@ -111,7 +136,7 @@ public:
 	}
 
 	static Vector<T> apply(const Vector<T>& a, std::function<T(const T)> predicate) {
-		Vector<T> result = Vector<T>(a.length);
+		Vector<T> result(a.length);
 
 		for (size_t i = 0; i < a.length; ++i)
 			result.vector[i] = predicate(a.vector[i]);
@@ -123,18 +148,19 @@ public:
 		if (this == &other)
 			return *this;
 
+		T* newVector = nullptr;
+
+		if (other.length > 0) {
+			newVector = new T[other.length];
+
+			for (size_t i = 0; i < other.length; ++i)
+				newVector[i] = other.vector[i];
+		}
+
 		delete[] vector;
 
 		length = other.length;
-
-		if (length < 1)
-			vector = nullptr;
-		else {
-			vector = new T[length];
-
-			for (size_t i = 0; i < length; ++i)
-				vector[i] = other.vector[i];
-		}
+		vector = newVector;
 
 		return *this;
 	}
@@ -156,10 +182,10 @@ template <typename T>
 std::ostream& operator<<(std::ostream& out, const Vector<T>& a) {
 	out << "[ ";
 
-	if (a.length > 0)
+	if (a.getLength() > 0)
 		out << a.at(0);
 
-	for (size_t i = 1; i < a.length; ++i)
+	for (size_t i = 1; i < a.getLength(); ++i)
 		out << ", " << a.at(i);
 
 	out << " ]";

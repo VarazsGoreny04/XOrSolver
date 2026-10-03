@@ -41,14 +41,14 @@ public:
 	}
 
 	float totalLoss(const Matrix<float>& dataset) const {
-		assert(dataset.lengthX == 2);
+		assert(dataset.getLengthX() == 2);
 
 		float result = 0.f;
 
-		for (size_t i = 0; i < dataset.lengthY; ++i)
+		for (size_t i = 0; i < dataset.getLengthY(); ++i)
 			result += loss(dataset.at(1, i), forward(dataset.at(0, i)));
 
-		return result / dataset.lengthY;
+		return result / dataset.getLengthY();
 	}
 
 	float backward(const Matrix<float>& dataset) {
@@ -76,7 +76,7 @@ public:
 	}
 
 	static void run(const Matrix<float>& dataset) {
-		SimpleNeuron n = SimpleNeuron();
+		SimpleNeuron n;
 
 		std::cout << "Initial weight: " << n.weight << std::endl
 			<< "Initial bias: " << n.bias << std::endl << std::endl;
@@ -90,7 +90,7 @@ public:
 
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;
 
-		for (size_t i = 0; i < dataset.lengthY; ++i)
+		for (size_t i = 0; i < dataset.getLengthY(); ++i)
 			std::cout << dataset.at(0, i) << " - " << dataset.at(1, i) << " : " << n.forward(dataset.at(0, i)) << std::endl;
 
 		std::cout << std::endl << "Final weight: " << n.weight << std::endl

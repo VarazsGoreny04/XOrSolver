@@ -10,12 +10,27 @@ template <typename T>
 class Matrix
 {
 private:
+	size_t lengthX;
+	size_t lengthY;
 	size_t length;
 	T* matrix;
 
+	void maker(int index, T value) {
+		assert(index + 1 == length);
+
+		matrix[index] = value;
+	}
+
+	template <typename... Args>
+	void maker(int index, T value, Args... values) {
+		assert(index < length);
+
+		matrix[index] = value;
+
+		maker(index + 1, values...);
+	}
+
 public:
-	size_t lengthX;
-	size_t lengthY;
 
 	Matrix() {
 		this->lengthX = 0;
@@ -54,6 +69,25 @@ public:
 		delete[] matrix;
 	}
 
+	const size_t getLengthX() const {
+		return lengthX;
+	}
+
+	const size_t getLengthY() const {
+		return lengthY;
+	}
+
+	const size_t getLength() const {
+		return length;
+	}
+
+	template <typename... Args>
+	Matrix<T>& make(Args... values) {
+		maker(0, values...);
+
+		return *this;
+	}
+
 	T at(const size_t x, const size_t y) const {
 		assert(x < lengthX && y < lengthY);
 
@@ -69,7 +103,7 @@ public:
 	}
 
 	static Matrix<T> transpose(const Matrix<T>& A) {
-		Matrix<T> result = Matrix<T>(A.lengthY, A.lengthX);
+		Matrix<T> result(A.lengthY, A.lengthX);
 
 		for (size_t y = 0; y < A.lengthY; ++y) {
 			for (size_t x = 0; x < A.lengthX; ++x)
@@ -83,7 +117,7 @@ public:
 		assert(A.lengthX == B.lengthX);
 		assert(A.lengthY == B.lengthY);
 
-		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
+		Matrix<T> result(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < result.length; ++i)
 			result.matrix[i] = A.matrix[i] + B.matrix[i];
@@ -95,7 +129,7 @@ public:
 		assert(A.lengthX == B.lengthX);
 		assert(A.lengthY == B.lengthY);
 
-		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
+		Matrix<T> result(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < result.length; ++i)
 			result.matrix[i] = A.matrix[i] - B.matrix[i];
@@ -104,9 +138,9 @@ public:
 	}
 
 	static Vector<T> product(const Matrix<T>& A, const Vector<T>& b) {
-		assert(A.lengthX == b.length);
+		assert(A.lengthX == b.getLength());
 
-		Vector<T> result = Vector<T>(A.lengthY);
+		Vector<T> result(A.lengthY);
 
 		for (size_t y = 0; y < A.lengthY; ++y) {
 			T temp = 0;
@@ -123,7 +157,7 @@ public:
 	static Matrix<T> product(const Matrix<T>& A, const Matrix<T>& B) {
 		assert(A.lengthX == B.lengthY);
 
-		Matrix<T> result = Matrix<T>(B.lengthX, A.lengthY);
+		Matrix<T> result(B.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < A.lengthY; ++i) {
 			for (size_t j = 0; j < B.lengthX; ++j) {
@@ -140,7 +174,7 @@ public:
 	}
 
 	static Matrix<T> scale(const Matrix<T>& A, const T b) {
-		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
+		Matrix<T> result(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < result.length; ++i)
 			result.matrix[i] = A.matrix[i] * b;
@@ -152,7 +186,7 @@ public:
 		assert(A.lengthX == B.lengthX);
 		assert(A.lengthY == B.lengthY);
 
-		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
+		Matrix<T> result(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < A.length; ++i)
 			result.matrix[i] = A.matrix[i] * B.matrix[i];
@@ -161,20 +195,20 @@ public:
 	}
 
 	static Matrix<T> gradient(const Vector<T>& a, const Vector<T>& b) {
-		Matrix<T> result = Matrix<T>(b.length, a.length);
+		Matrix<T> result(b.getLength(), a.getLength());
 
-		for (size_t y = 0; y < a.length; ++y) {
+		for (size_t y = 0; y < a.getLength(); ++y) {
 			T aY = a.at(y);
 
-			for (size_t x = 0; x < b.length; ++x)
-				result.matrix[b.length * y + x] = aY * b.at(x);
+			for (size_t x = 0; x < b.getLength(); ++x)
+				result.matrix[b.getLength() * y + x] = aY * b.at(x);
 		}
 
 		return result;
 	}
 
 	static Matrix<T> apply(const Matrix<T>& A, std::function<T(const T)> predicate) {
-		Matrix<T> result = Matrix<T>(A.lengthX, A.lengthY);
+		Matrix<T> result(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < A.length; ++i)
 			result.matrix[i] = predicate(A.matrix[i]);
@@ -186,20 +220,21 @@ public:
 		if (this == &other)
 			return *this;
 
+		T* newMatrix = nullptr;
+
+		if (other.length > 0) {
+			newMatrix = new T[other.length];
+
+			for (size_t i = 0; i < other.length; ++i)
+				newMatrix[i] = other.matrix[i];
+		}
+
 		delete[] matrix;
 
 		lengthX = other.lengthX;
 		lengthY = other.lengthY;
 		length = other.length;
-
-		if (length < 1)
-			matrix = nullptr;
-		else {
-			matrix = new T[length];
-
-			for (size_t i = 0; i < length; ++i)
-				matrix[i] = other.matrix[i];
-		}
+		matrix = newMatrix;
 
 		return *this;
 	}
@@ -225,10 +260,10 @@ template <typename T>
 std::ostream& operator<<(std::ostream& out, const Matrix<T>& A) {
 	out << "[ ";
 
-	for (size_t y = 0; y < A.lengthY; ++y) {
+	for (size_t y = 0; y < A.getLengthY(); ++y) {
 		out << A.at(0, y);
 
-		for (size_t x = 1; x < A.lengthX; ++x)
+		for (size_t x = 1; x < A.getLengthX(); ++x)
 			out << ", " << A.at(x, y);
 
 		out << "; ";

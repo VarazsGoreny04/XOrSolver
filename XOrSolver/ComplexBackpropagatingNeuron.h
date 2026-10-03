@@ -59,18 +59,18 @@ public:
 	}
 
 	float totalLoss(const Matrix<float>& dataset) const {
-		assert(dataset.lengthX == 3);
+		assert(dataset.getLengthX() == 3);
 
 		float result = 0.f;
 
-		for (size_t i = 0; i < dataset.lengthY; ++i)
+		for (size_t i = 0; i < dataset.getLengthY(); ++i)
 			result += loss(dataset.at(2, i), forward(dataset.at(0, i), dataset.at(1, i)));
 
-		return result / dataset.lengthY;
+		return result / dataset.getLengthY();
 	}
 
 	float backward(const Matrix<float>& dataset) {
-		assert(dataset.lengthX == 3);
+		assert(dataset.getLengthX() == 3);
 
 		const float rate = 1e+1f;
 
@@ -78,7 +78,7 @@ public:
 		float weightChange2 = 0.f;
 		float biasChange = 0.f;
 
-		for (size_t i = 0; i < dataset.lengthY; ++i) {
+		for (size_t i = 0; i < dataset.getLengthY(); ++i) {
 			float x1 = dataset.at(0, i);
 			float x2 = dataset.at(1, i);
 			float y = dataset.at(2, i);
@@ -92,15 +92,15 @@ public:
 			biasChange += ldXAd;
 		}
 
-		this->weight1 -= (weightChange1 / dataset.lengthY) * rate;
-		this->weight2 -= (weightChange2 / dataset.lengthY) * rate;
-		this->bias -= (biasChange / dataset.lengthY) * rate;
+		this->weight1 -= (weightChange1 / dataset.getLengthY()) * rate;
+		this->weight2 -= (weightChange2 / dataset.getLengthY()) * rate;
+		this->bias -= (biasChange / dataset.getLengthY()) * rate;
 
 		return totalLoss(dataset);
 	}
 
 	static void run(const Matrix<float>& dataset) {
-		ComplexBackpropagatingNeuron n = ComplexBackpropagatingNeuron();
+		ComplexBackpropagatingNeuron n;
 
 		std::cout << "Initial weight1: " << n.weight1 << std::endl
 			<< "Initial weight1: " << n.weight2 << std::endl
@@ -118,7 +118,7 @@ public:
 
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;
 
-		for (size_t i = 0; i < dataset.lengthY; ++i) {
+		for (size_t i = 0; i < dataset.getLengthY(); ++i) {
 			std::cout << dataset.at(0, i) << " - " << dataset.at(1, i) << " - " << dataset.at(2, i)
 				<< " : " << n.forward(dataset.at(0, i), dataset.at(1, i)) << std::endl;
 		}

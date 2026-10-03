@@ -24,6 +24,12 @@ private:
 			this->dActivationValues = Vector<float>();
 		}
 
+		LayerResults(const Vector<float>& activationValues) {
+			this->weightedInputs = Vector<float>();
+			this->activationValues = activationValues;
+			this->dActivationValues = Vector<float>();
+		}
+
 		LayerResults(const Vector<float>& weightedInputs, const Vector<float>& activationValues, const Vector<float>& dActivationValues) {
 			this->weightedInputs = weightedInputs;
 			this->activationValues = activationValues;
@@ -66,16 +72,11 @@ private:
 	}
 
 	std::vector<LayerResults> getPartialResults(const Vector<float>& input) const {
-		assert(input.length == inputs);
+		assert(input.getLength() == inputs);
 
-		Vector<float> activationValues = Vector<float>(input);
+		Vector<float> activationValues(input);
 
-		std::vector<LayerResults> result = std::vector<LayerResults>();
-		{
-			LayerResults first = LayerResults();
-			first.activationValues = input;
-			result.push_back(first);
-		}
+		std::vector<LayerResults> result{ LayerResults(activationValues) };
 
 		for (size_t i = 0; i < layers; ++i) {
 			Matrix<float> weights = this->weights.at(i);
@@ -92,10 +93,10 @@ private:
 	}
 
 	void backwardOneData(const Vector<float>& xs, const Vector<float>& ys, Vector<Matrix<float>>& weightChanges, Vector<Vector<float>>& biasChanges) const {
-		assert(weightChanges.length == layers);
-		assert(biasChanges.length == layers);
-		assert(xs.length == inputs);
-		assert(ys.length == outputs);
+		assert(weightChanges.getLength() == layers);
+		assert(biasChanges.getLength() == layers);
+		assert(xs.getLength() == inputs);
+		assert(ys.getLength() == outputs);
 
 		std::vector<LayerResults> partialResults = getPartialResults(xs);
 		Vector<float> deltaVector;
@@ -136,8 +137,8 @@ public:
 		for (size_t i = 1; i <= this->layers; ++i) {
 			next = layers[i];
 
-			Matrix<float> currentWeights = Matrix<float>(prev, next);
-			Vector<float> currentBiases = Vector<float>(next);
+			Matrix<float> currentWeights(prev, next);
+			Vector<float> currentBiases(next);
 
 			for (size_t y = 0; y < next; ++y) {
 				for (size_t x = 0; x < prev; ++x)
@@ -154,13 +155,13 @@ public:
 	~NeuralNetwork() {}
 
 	Vector<float> forward(const Vector<float>& input) const {
-		assert(input.length == inputs);
+		assert(input.getLength() == inputs);
 
-		Vector<float> result = Vector<float>(input);
+		Vector<float> result(input);
 
 		for (size_t i = 0; i < layers; ++i) {
-			Matrix<float> weight = weights.at(i);
-			Vector<float> bias = biases.at(i);
+			Matrix<float> weight = Matrix<float>(weights.at(i));
+			Vector<float> bias = Vector<float>(biases.at(i));
 
 			result = activation(weight * result + bias);
 		}
@@ -169,34 +170,34 @@ public:
 	}
 
 	float totalLoss(const Matrix<Vector<float>>& dataset) const {
-		assert(dataset.lengthX == 2);
+		assert(dataset.getLengthX() == 2);
 
 		float totalLoss = 0.f;
 
-		for (size_t i = 0; i < dataset.lengthY; ++i) {
+		for (size_t i = 0; i < dataset.getLengthY(); ++i) {
 			Vector<float> temp = loss(dataset.at(1, i), forward(dataset.at(0, i)));
 
-			for (size_t i = 0; i < temp.length; ++i)
+			for (size_t i = 0; i < temp.getLength(); ++i)
 				totalLoss += temp.at(i);
 		}
 
-		return totalLoss / dataset.lengthY;
+		return totalLoss / dataset.getLengthY();
 	}
 
 	float backward(const Matrix<Vector<float>>& dataset) {
-		assert(dataset.lengthX == 2);
+		assert(dataset.getLengthX() == 2);
 
 		const float rate = 1e+1f;
 
-		Vector<Matrix<float>> allWeightChanges = Vector<Matrix<float>>(weights.length);
-		Vector<Vector<float>> allBiasChanges = Vector<Vector<float>>(biases.length);
+		Vector<Matrix<float>> allWeightChanges = Vector<Matrix<float>>(weights.getLength());
+		Vector<Vector<float>> allBiasChanges = Vector<Vector<float>>(biases.getLength());
 
-		if (dataset.lengthY > 0)
+		if (dataset.getLengthY() > 0)
 			backwardOneData(dataset.at(0, 0), dataset.at(1, 0), allWeightChanges, allBiasChanges);
 
-		for (size_t i = 1; i < dataset.lengthY; ++i) {
-			Vector<Matrix<float>> weightChanges = Vector<Matrix<float>>(weights.length);
-			Vector<Vector<float>> biasChanges = Vector<Vector<float>>(biases.length);
+		for (size_t i = 1; i < dataset.getLengthY(); ++i) {
+			Vector<Matrix<float>> weightChanges = Vector<Matrix<float>>(weights.getLength());
+			Vector<Vector<float>> biasChanges = Vector<Vector<float>>(biases.getLength());
 
 			backwardOneData(dataset.at(0, i), dataset.at(1, i), weightChanges, biasChanges);
 
@@ -204,7 +205,7 @@ public:
 			allBiasChanges = allBiasChanges + biasChanges;
 		}
 
-		float scalar = rate / dataset.lengthY;
+		float scalar = rate / dataset.getLengthY();
 
 		weights = weights - Vector<Matrix<float>>::apply(allWeightChanges,
 			[scalar](const Matrix<float>& A) -> Matrix<float> { return Matrix<float>::scale(A, scalar); });
@@ -215,9 +216,9 @@ public:
 	}
 
 	static void run(const Matrix<Vector<float>>& dataset) {
-		std::vector<size_t> layers = { 2, 2, 1 };
+		std::vector<size_t> layers{ 2, 2, 1 };
 
-		NeuralNetwork n = NeuralNetwork(layers);
+		NeuralNetwork n(layers);
 
 		std::cout << "Initial weights: " << n.weights << std::endl
 			<< "Initial biases: " << n.biases << std::endl << std::endl;
@@ -226,12 +227,12 @@ public:
 		for (size_t i = 0; i < 1e+3 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
 
-			std::cout << "Current loss: " << loss << "  Current weights: " << n.weights << "  Current biases: " << n.biases << std::endl << std::endl;
+			//std::cout << "Current loss: " << loss << "  Current weights: " << n.weights << "  Current biases: " << n.biases << std::endl << std::endl;
 		}
 
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;
 
-		for (size_t i = 0; i < dataset.lengthY; ++i)
+		for (size_t i = 0; i < dataset.getLengthY(); ++i)
 			std::cout << dataset.at(0, i) << " - " << dataset.at(1, i) << " : " << n.forward(dataset.at(0, i)) << std::endl;
 
 		std::cout << std::endl << "Final weights: " << n.weights << std::endl

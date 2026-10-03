@@ -1,5 +1,6 @@
 #pragma once
 
+#undef NDEBUG
 #include <cassert>
 #include <iostream>
 #define _USE_MATH_DEFINES
@@ -13,13 +14,14 @@ private:
 	float weight;
 	float bias;
 
+	float epsilon;
+	float learningRate;
+
 	static float randE() {
-		const int precision = 1000;
+		double random = 2 * ((double)rand() / RAND_MAX) - 1;
+		double cubedRandom = random * random * random;
 
-		double random = (double)(rand() % (precision * 2 + 1) - precision) / precision;
-		double normal = random * random * M_E;
-
-		return (float)normal;
+		return (float)(cubedRandom * M_E);
 	}
 
 	static float loss(const float expected, const float predicted) {
@@ -29,9 +31,12 @@ private:
 	}
 
 public:
-	SimpleNeuron() {
+	SimpleNeuron(float epsilon, float learningRate) {
 		this->weight = randE();
 		this->bias = 0.f;
+
+		this->epsilon = epsilon;
+		this->learningRate = learningRate;
 	}
 
 	~SimpleNeuron() { }
@@ -52,9 +57,6 @@ public:
 	}
 
 	float backward(const Matrix<float>& dataset) {
-		const float epsilon = 1e-5f;
-		const float rate = 1e+2f;
-
 		float initialWeight = weight;
 		float initialBias = bias;
 
@@ -69,14 +71,14 @@ public:
 
 		float biasAddLoss = totalLoss(dataset);
 
-		this->weight = initialWeight + (currentLoss - weightAddLoss) * rate;
-		this->bias = initialBias + (currentLoss - biasAddLoss) * rate;
+		this->weight = initialWeight + (currentLoss - weightAddLoss) * learningRate;
+		this->bias = initialBias + (currentLoss - biasAddLoss) * learningRate;
 
 		return totalLoss(dataset);
 	}
 
-	static void run(const Matrix<float>& dataset) {
-		SimpleNeuron n;
+	static void run(float epsilon, float learningRate, const Matrix<float>& dataset) {
+		SimpleNeuron n(epsilon, learningRate);
 
 		std::cout << "Initial weight: " << n.weight << std::endl
 			<< "Initial bias: " << n.bias << std::endl << std::endl;

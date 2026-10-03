@@ -1,5 +1,6 @@
 #pragma once
 
+#undef NDEBUG
 #include <cassert>
 #include <iostream>
 #define _USE_MATH_DEFINES
@@ -14,13 +15,14 @@ private:
 	float weight2;
 	float bias;
 
+	float epsilon;
+	float learningRate;
+
 	static float randE() {
-		const int precision = 1000;
+		double random = 2 * ((double)rand() / RAND_MAX) - 1;
+		double cubedRandom = random * random * random;
 
-		double random = (double)(rand() % (precision * 2 + 1) - precision) / precision;
-		double normal = random * random * M_E;
-
-		return (float)normal;
+		return (float)(cubedRandom * M_E);
 	}
 
 	static float activation(const float x) {
@@ -34,10 +36,13 @@ private:
 	}
 
 public:
-	ComplexNeuron() {
+	ComplexNeuron(float epsilon, float learningRate) {
 		this->weight1 = randE();
 		this->weight2 = randE();
 		this->bias = 0.f;
+
+		this->epsilon = epsilon;
+		this->learningRate = learningRate;
 	}
 
 	~ComplexNeuron() {}
@@ -58,9 +63,6 @@ public:
 	}
 
 	float backward(const Matrix<float>& dataset) {
-		const float epsilon = 1e-2f;
-		const float rate = 1e+2f;
-
 		float initialWeight1 = weight1;
 		float initialWeight2 = weight2;
 		float initialBias = bias;
@@ -81,15 +83,15 @@ public:
 
 		float biasAddLoss = totalLoss(dataset);
 
-		this->weight1 = initialWeight1 + (currentLoss - weightAddLoss1) * rate;
-		this->weight2 = initialWeight2 + (currentLoss - weightAddLoss2) * rate;
-		this->bias = initialBias + (currentLoss - biasAddLoss) * rate;
+		this->weight1 = initialWeight1 + (currentLoss - weightAddLoss1) * learningRate;
+		this->weight2 = initialWeight2 + (currentLoss - weightAddLoss2) * learningRate;
+		this->bias = initialBias + (currentLoss - biasAddLoss) * learningRate;
 
 		return totalLoss(dataset);
 	}
 
-	static void run(const Matrix<float>& dataset) {
-		ComplexNeuron n;
+	static void run(float epsilon, float learningRate, const Matrix<float>& dataset) {
+		ComplexNeuron n(epsilon, learningRate);
 
 		std::cout << "Initial weight1: " << n.weight1 << std::endl
 			<< "Initial weight1: " << n.weight2 << std::endl

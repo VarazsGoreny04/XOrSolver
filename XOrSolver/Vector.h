@@ -1,5 +1,6 @@
 #pragma once
 
+#undef NDEBUG
 #include <cassert>
 #include <iostream>
 #include <functional>
@@ -12,14 +13,14 @@ private:
 	size_t length;
 	T* vector;
 
-	void maker(int index, T value) {
+	void maker(size_t index, T value) {
 		assert(index + 1 == length);
 
 		vector[index] = value;
 	}
 
 	template <typename... Args>
-	void maker(int index, T value, Args... values) {
+	void maker(size_t index, T value, Args... values) {
 		assert(index < length);
 
 		vector[index] = value;

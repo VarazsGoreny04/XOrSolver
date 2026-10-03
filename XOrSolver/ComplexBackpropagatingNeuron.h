@@ -1,5 +1,6 @@
 #pragma once
 
+#undef NDEBUG
 #include <cassert>
 #include <iostream>
 #define _USE_MATH_DEFINES
@@ -14,13 +15,13 @@ private:
 	float weight2;
 	float bias;
 
+	float learningRate;
+
 	static float randE() {
-		const int precision = 1000;
+		double random = 2 * ((double)rand() / RAND_MAX) - 1;
+		double cubedRandom = random * random * random;
 
-		double random = (double)(rand() % (precision * 2 + 1) - precision) / precision;
-		double normal = random * random * M_E;
-
-		return (float)normal;
+		return (float)(cubedRandom * M_E);
 	}
 
 	static float activation(const float x) {
@@ -46,10 +47,12 @@ private:
 	}
 
 public:
-	ComplexBackpropagatingNeuron() {
+	ComplexBackpropagatingNeuron(float learningRate) {
 		this->weight1 = randE();
 		this->weight2 = randE();
 		this->bias = 0.f;
+
+		this->learningRate = learningRate;
 	}
 
 	~ComplexBackpropagatingNeuron() {}
@@ -72,8 +75,6 @@ public:
 	float backward(const Matrix<float>& dataset) {
 		assert(dataset.getLengthX() == 3);
 
-		const float rate = 1e+1f;
-
 		float weightChange1 = 0.f;
 		float weightChange2 = 0.f;
 		float biasChange = 0.f;
@@ -92,15 +93,15 @@ public:
 			biasChange += ldXAd;
 		}
 
-		this->weight1 -= (weightChange1 / dataset.getLengthY()) * rate;
-		this->weight2 -= (weightChange2 / dataset.getLengthY()) * rate;
-		this->bias -= (biasChange / dataset.getLengthY()) * rate;
+		this->weight1 -= (weightChange1 / dataset.getLengthY()) * learningRate;
+		this->weight2 -= (weightChange2 / dataset.getLengthY()) * learningRate;
+		this->bias -= (biasChange / dataset.getLengthY()) * learningRate;
 
 		return totalLoss(dataset);
 	}
 
-	static void run(const Matrix<float>& dataset) {
-		ComplexBackpropagatingNeuron n;
+	static void run(float learningRate, const Matrix<float>& dataset) {
+		ComplexBackpropagatingNeuron n(learningRate);
 
 		std::cout << "Initial weight1: " << n.weight1 << std::endl
 			<< "Initial weight1: " << n.weight2 << std::endl

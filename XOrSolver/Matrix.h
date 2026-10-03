@@ -1,5 +1,6 @@
 #pragma once
 
+#undef NDEBUG
 #include <cassert>
 #include <iostream>
 #include <functional>
@@ -146,7 +147,7 @@ public:
 			T temp = 0;
 
 			for (size_t x = 0; x < A.lengthX; ++x)
-				temp += A.matrix[A.lengthX * y + x] * b.at(x);
+				temp = temp + A.matrix[A.lengthX * y + x] * b.at(x);
 
 			result.put(y, temp);
 		}
@@ -164,7 +165,7 @@ public:
 				T temp = 0;
 
 				for (size_t k = 0; k < A.lengthX; ++k)
-					temp += A.matrix[A.lengthX * i + k] * B.matrix[B.lengthX * k + j];
+					temp = temp + A.matrix[A.lengthX * i + k] * B.matrix[B.lengthX * k + j];
 
 				result.matrix[B.lengthX * i + j] = temp;
 			}

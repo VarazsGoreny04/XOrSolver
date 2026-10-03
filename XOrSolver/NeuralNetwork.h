@@ -1,5 +1,6 @@
 #pragma once
 
+#undef NDEBUG
 #include <cassert>
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -45,8 +46,13 @@ private:
 	Vector<Matrix<float>> weights;
 	Vector<Vector<float>> biases;
 
+	float learningRate;
+
 	static float randE() {
-		return (float)((2. * ((double)rand() / RAND_MAX) - 1.) * M_E);
+		double random = 2 * ((double)rand() / RAND_MAX) - 1;
+		double cubedRandom = random * random * random;
+
+		return (float)(cubedRandom * M_E);
 	}
 
 	static Vector<float> activation(const Vector<float> xs) {
@@ -93,10 +99,10 @@ private:
 	}
 
 	void backwardOneData(const Vector<float>& xs, const Vector<float>& ys, Vector<Matrix<float>>& weightChanges, Vector<Vector<float>>& biasChanges) const {
-		assert(weightChanges.getLength() == layers);
-		assert(biasChanges.getLength() == layers);
 		assert(xs.getLength() == inputs);
 		assert(ys.getLength() == outputs);
+		assert(weightChanges.getLength() == layers);
+		assert(biasChanges.getLength() == layers);
 
 		std::vector<LayerResults> partialResults = getPartialResults(xs);
 		Vector<float> deltaVector;
@@ -121,7 +127,7 @@ private:
 	}
 
 public:
-	NeuralNetwork(const std::vector<size_t>& layers) {
+	NeuralNetwork(const std::vector<size_t>& layers, float learningRate) {
 		this->layers = layers.size() - 1;
 		this->inputs = layers[0];
 		this->outputs = layers[this->layers];
@@ -150,6 +156,8 @@ public:
 
 			prev = next;
 		}
+
+		this->learningRate = learningRate;
 	}
 
 	~NeuralNetwork() {}
@@ -187,8 +195,6 @@ public:
 	float backward(const Matrix<Vector<float>>& dataset) {
 		assert(dataset.getLengthX() == 2);
 
-		const float rate = 1e+1f;
-
 		Vector<Matrix<float>> allWeightChanges = Vector<Matrix<float>>(weights.getLength());
 		Vector<Vector<float>> allBiasChanges = Vector<Vector<float>>(biases.getLength());
 
@@ -205,7 +211,7 @@ public:
 			allBiasChanges = allBiasChanges + biasChanges;
 		}
 
-		float scalar = rate / dataset.getLengthY();
+		float scalar = learningRate / dataset.getLengthY();
 
 		weights = weights - Vector<Matrix<float>>::apply(allWeightChanges,
 			[scalar](const Matrix<float>& A) -> Matrix<float> { return Matrix<float>::scale(A, scalar); });
@@ -215,10 +221,8 @@ public:
 		return totalLoss(dataset);
 	}
 
-	static void run(const Matrix<Vector<float>>& dataset) {
-		std::vector<size_t> layers{ 2, 2, 1 };
-
-		NeuralNetwork n(layers);
+	static void run(const std::vector<size_t>& layers, float learningRate, const Matrix<Vector<float>>& dataset) {
+		NeuralNetwork n(layers, learningRate);
 
 		std::cout << "Initial weights: " << n.weights << std::endl
 			<< "Initial biases: " << n.biases << std::endl << std::endl;

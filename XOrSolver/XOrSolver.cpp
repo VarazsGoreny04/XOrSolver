@@ -59,7 +59,7 @@ int main()
 	// ComplexBackpropagatingNeuron::run(orStates);
 	
 	{
-		Matrix<float> dataset = Matrix<float>(andStates);
+		Matrix<float> dataset = Matrix<float>(xorStates);
 		Matrix<Vector<float>> datasetMV = Matrix<Vector<float>>(2, dataset.lengthY);
 		for (size_t y = 0; y < dataset.lengthY; ++y) {
 			datasetMV.put(0, y, Vector<float>(2).put(0, dataset.at(0, y)).put(1, dataset.at(1, y)));
@@ -67,12 +67,7 @@ int main()
 		}
 
 		NeuralNetwork::run(datasetMV);
-		
-		/*NeuralNetwork nn = NeuralNetwork({ 2, 1 });
-		for (size_t i = 0; i < datasetMV.lengthY; ++i)
-			nn.forward(datasetMV.at(0, i));*/
 	}
-
 
 	return 0;
 }

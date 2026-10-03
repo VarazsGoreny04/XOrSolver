@@ -40,12 +40,7 @@ private:
 	Vector<Vector<float>> biases;
 
 	static float randE() {
-		const int precision = 1000;
-
-		double random = (double)(rand() % (precision * 2 + 1) - precision) / precision;
-		double normal = random * random * M_E;
-
-		return (float)normal;
+		return (float)((2. * ((double)rand() / RAND_MAX) - 1.) * M_E);
 	}
 
 	static Vector<float> activation(const Vector<float> xs) {
@@ -73,7 +68,7 @@ private:
 	std::vector<LayerResults> getPartialResults(const Vector<float>& input) const {
 		assert(input.length == inputs);
 
-		Vector<float> partialResult = Vector<float>(input);
+		Vector<float> activationValues = Vector<float>(input);
 
 		std::vector<LayerResults> result = std::vector<LayerResults>();
 		{
@@ -86,8 +81,8 @@ private:
 			Matrix<float> weights = this->weights.at(i);
 			Vector<float> biases = this->biases.at(i);
 
-			Vector<float> weightedInputs = weights * partialResult + biases;
-			Vector<float> activationValues = activation(weightedInputs);
+			Vector<float> weightedInputs = weights * activationValues + biases;
+			activationValues = activation(weightedInputs);
 			Vector<float> dActivationValues = activationDerivative(weightedInputs);
 
 			result.push_back(LayerResults(weightedInputs, activationValues, dActivationValues));
@@ -103,24 +98,24 @@ private:
 		assert(ys.length == outputs);
 
 		std::vector<LayerResults> partialResults = getPartialResults(xs);
-		Vector<float> nodeValues;
+		Vector<float> deltaVector;
 
 		assert(partialResults.size() == layers + 1);
 
 		std::vector<LayerResults>::iterator layerResult = --(partialResults.end());
 
 		{
-			nodeValues = Vector<float>::scale(lossDerivative(ys, (*layerResult).activationValues), (*layerResult).dActivationValues);
+			deltaVector = Vector<float>::scale(lossDerivative(ys, (*layerResult).activationValues), (*layerResult).dActivationValues);
 
-			weightChanges.put(layers - 1, Matrix<float>::gradient(nodeValues, (*(--layerResult)).activationValues));
-			biasChanges.put(layers - 1, nodeValues);
+			weightChanges.put(layers - 1, Matrix<float>::gradient(deltaVector, (*(--layerResult)).activationValues));
+			biasChanges.put(layers - 1, deltaVector);
 		}
 
 		for (size_t layer = layers - 1; layer-- > 0;) {
-			nodeValues = Vector<float>::scale(Matrix<float>::transpose(weights.at(layer + 1)) * nodeValues, (*layerResult).dActivationValues);
+			deltaVector = Vector<float>::scale(Matrix<float>::transpose(weights.at(layer + 1)) * deltaVector, (*layerResult).dActivationValues);
 
-			weightChanges.put(layer, Matrix<float>::gradient(nodeValues, (*(--layerResult)).activationValues));
-			biasChanges.put(layer, nodeValues);
+			weightChanges.put(layer, Matrix<float>::gradient(deltaVector, (*(--layerResult)).activationValues));
+			biasChanges.put(layer, deltaVector);
 		}
 	}
 
@@ -191,7 +186,7 @@ public:
 	float backward(const Matrix<Vector<float>>& dataset) {
 		assert(dataset.lengthX == 2);
 
-		const float rate = 1e-5f;
+		const float rate = 1e+1f;
 
 		Vector<Matrix<float>> allWeightChanges = Vector<Matrix<float>>(weights.length);
 		Vector<Vector<float>> allBiasChanges = Vector<Vector<float>>(biases.length);
@@ -228,7 +223,7 @@ public:
 			<< "Initial biases: " << n.biases << std::endl << std::endl;
 
 		float loss = 1.f;
-		for (size_t i = 0; i < 1e+5 && loss > 1e-6; ++i) {
+		for (size_t i = 0; i < 1e+3 && loss > 1e-6; ++i) {
 			loss = n.backward(dataset);
 
 			std::cout << "Current loss: " << loss << "  Current weights: " << n.weights << "  Current biases: " << n.biases << std::endl << std::endl;

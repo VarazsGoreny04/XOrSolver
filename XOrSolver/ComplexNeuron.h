@@ -8,16 +8,41 @@
 #include <stdlib.h>
 #include "Matrix.h"
 
-class ComplexNeuron
+/// <summary>
+/// A neuron with two inputs and one output.
+/// </summary>
+struct ComplexNeuron
 {
 private:
+	/// <summary>
+	/// The weight of the first input.
+	/// </summary>
 	float weight1;
+
+	/// <summary>
+	/// The weight of the second input.
+	/// </summary>
 	float weight2;
+
+	/// <summary>
+	/// The bias of this neuron.
+	/// </summary>
 	float bias;
 
+	/// <summary>
+	/// The epsilon value used in the finite derivative calculation.
+	/// </summary>
 	float epsilon;
+
+	/// <summary>
+	/// The learning rate of the backpropagation algorithm.
+	/// </summary>
 	float learningRate;
 
+	/// <summary>
+	/// Creates a random value between -e and e.
+	/// </summary>
+	/// <returns>The created value.</returns>
 	static float randE() {
 		double random = 2 * ((double)rand() / RAND_MAX) - 1;
 		double cubedRandom = random * random * random;
@@ -25,10 +50,21 @@ private:
 		return (float)(cubedRandom * M_E);
 	}
 
+	/// <summary>
+	/// The activation function of the backpropagation.
+	/// </summary>
+	/// <param name="x">The input value.</param>
+	/// <returns>The crated value.</returns>
 	static float activation(const float x) {
 		return 1.f / (1.f + expf(-x));
 	}
 
+	/// <summary>
+	/// The loss/cost function.
+	/// </summary>
+	/// <param name="expected">The expected value.</param>
+	/// <param name="predicted">The predicted value.</param>
+	/// <returns>The squared difference between the expected and predicted values.</returns>
 	static float loss(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
@@ -36,6 +72,11 @@ private:
 	}
 
 public:
+	/// <summary>
+	/// Creates a ComplexNeuron by the given values.
+	/// </summary>
+	/// <param name="epsilon">The epsilon value used in the finite derivative calculation.</param>
+	/// <param name="learningRate">The learning rate of the backpropagation algorithm.</param>
 	ComplexNeuron(float epsilon, float learningRate) {
 		this->weight1 = randE();
 		this->weight2 = randE();
@@ -45,12 +86,26 @@ public:
 		this->learningRate = learningRate;
 	}
 
+	/// <summary>
+	/// Deconstructs this ComplexNeuron.
+	/// </summary>
 	~ComplexNeuron() {}
 
+	/// <summary>
+	/// Forward-propagates the network.
+	/// </summary>
+	/// <param name="input1">The first input of the network.</param>
+	/// <param name="input2">The second input of the network.</param>
+	/// <returns>The computed output.</returns>
 	float forward(const float input1, const float input2) const {
 		return activation(weight1 * input1 + weight2 * input2 + bias);
 	}
 
+	/// <summary>
+	/// Calculates the loss function for all of the inputs in the dataset.
+	/// </summary>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
+	/// <returns>The value of the total loss.</returns>
 	float totalLoss(const Matrix<float>& dataset) const {
 		assert(dataset.getLengthX() == 3);
 
@@ -62,6 +117,11 @@ public:
 		return result / dataset.getLengthY();
 	}
 
+	/// <summary>
+	/// Back-propagates the network.
+	/// </summary>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
+	/// <returns>The new total loss.</returns>
 	float backward(const Matrix<float>& dataset) {
 		float initialWeight1 = weight1;
 		float initialWeight2 = weight2;
@@ -89,7 +149,13 @@ public:
 
 		return totalLoss(dataset);
 	}
-
+	
+	/// <summary>
+	/// Builds a network and trains it on the given dataset.
+	/// </summary>
+	/// <param name="epsilon">The epsilon value used in the finite derivative.</param>
+	/// <param name="learningRate">The learning rate of the backpropagation.</param>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
 	static void run(float epsilon, float learningRate, const Matrix<float>& dataset) {
 		ComplexNeuron n(epsilon, learningRate);
 

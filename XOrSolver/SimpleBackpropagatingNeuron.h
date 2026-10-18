@@ -8,14 +8,31 @@
 #include <stdlib.h>
 #include "Matrix.h"
 
-class SimpleBackpropagatingNeuron
+/// <summary>
+/// A very simple neuron with just one input and one output, but with proper backpropagation.
+/// </summary>
+struct SimpleBackpropagatingNeuron
 {
 private:
+	/// <summary>
+	/// The weight of the input.
+	/// </summary>
 	float weight;
+
+	/// <summary>
+	/// The bias of this neuron.
+	/// </summary>
 	float bias;
 
+	/// <summary>
+	/// The learning rate of the backpropagation algorithm.
+	/// </summary>
 	float learningRate;
 
+	/// <summary>
+	/// Creates a random value between -e and e.
+	/// </summary>
+	/// <returns>The created value.</returns>
 	static float randE() {
 		double random = 2 * ((double)rand() / RAND_MAX) - 1;
 		double cubedRandom = random * random * random;
@@ -23,12 +40,24 @@ private:
 		return (float)(cubedRandom * M_E);
 	}
 
+	/// <summary>
+	/// The loss/cost function.
+	/// </summary>
+	/// <param name="expected">The expected value.</param>
+	/// <param name="predicted">The predicted value.</param>
+	/// <returns>The squared difference between the expected and predicted values.</returns>
 	static float loss(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
 		return loss * loss;
 	}
 
+	/// <summary>
+	/// The derivative of the loss/cost function.
+	/// </summary>
+	/// <param name="expected">The expected value.</param>
+	/// <param name="predicted">The predicted value.</param>
+	/// <returns>The derivative of the squared difference between the expected and predicted values.</returns>
 	static float lossDerivative(const float expected, const float predicted) {
 		float loss = predicted - expected;
 
@@ -36,6 +65,10 @@ private:
 	}
 
 public:
+	/// <summary>
+	/// Creates a SimpleBackpropagatingNeuron by the given values.
+	/// </summary>
+	/// <param name="learningRate">The learning rate of the backpropagation algorithm.</param>
 	SimpleBackpropagatingNeuron(float learningRate) {
 		this->weight = randE();
 		this->bias = 0.f;
@@ -43,12 +76,25 @@ public:
 		this->learningRate = learningRate;
 	}
 
+	/// <summary>
+	/// Deconstructs this SimpleBackpropagatingNeuron.
+	/// </summary>
 	~SimpleBackpropagatingNeuron() {}
 
+	/// <summary>
+	/// Forward-propagates the network.
+	/// </summary>
+	/// <param name="input">The input of the network.</param>
+	/// <returns>The computed output.</returns>
 	float forward(const float input) const {
 		return weight * input + bias;
 	}
 
+	/// <summary>
+	/// Calculates the loss function for all of the inputs in the dataset.
+	/// </summary>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
+	/// <returns>The value of the total loss.</returns>
 	float totalLoss(const Matrix<float>& dataset) const {
 		assert(dataset.getLengthX() == 2);
 
@@ -60,6 +106,11 @@ public:
 		return result / dataset.getLengthY();
 	}
 
+	/// <summary>
+	/// Back-propagates the network.
+	/// </summary>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
+	/// <returns>The new total loss.</returns>
 	float backward(const Matrix<float>& dataset) {
 		assert(dataset.getLengthX() == 2);
 

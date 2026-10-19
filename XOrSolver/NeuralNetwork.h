@@ -8,46 +8,110 @@
 #include "Vector.h"
 #include "Matrix.h"
 
+/// <summary>
+/// A neural network.
+/// </summary>
 struct NeuralNetwork
 {
 private:
+	/// <summary>
+	/// A partial result of the forward-propagation between two layers.
+	/// </summary>
 	struct LayerResults
 	{
 	public:
+		/// <summary>
+		/// The weighted inputs.
+		/// </summary>
 		Vector<float> weightedInputs;
+
+		/// <summary>
+		/// The activation values.
+		/// </summary>
 		Vector<float> activationValues;
+
 		// The derivatives of the weighted inputs are the previous activation values
+
+		/// <summary>
+		/// The derivative of the activation values.
+		/// </summary>
 		Vector<float> dActivationValues;
 
+		/// <summary>
+		/// Creates a LayerResults instance.
+		/// </summary>
 		LayerResults() {
 			this->weightedInputs = Vector<float>();
 			this->activationValues = Vector<float>();
 			this->dActivationValues = Vector<float>();
 		}
 
+		/// <summary>
+		/// Creates a LayerResults instance by the activation values.
+		/// </summary>
+		/// <param name="activationValues">The activation values.</param>
 		LayerResults(const Vector<float>& activationValues) {
 			this->weightedInputs = Vector<float>();
 			this->activationValues = activationValues;
 			this->dActivationValues = Vector<float>();
 		}
 
+		/// <summary>
+		/// Creates a LayerResults instance by the given values.
+		/// </summary>
+		/// <param name="weightedInputs">The weighted inputs.</param>
+		/// <param name="activationValues">The activation values.</param>
+		/// <param name="dActivationValues">The derivative of the activation values.</param>
 		LayerResults(const Vector<float>& weightedInputs, const Vector<float>& activationValues, const Vector<float>& dActivationValues) {
 			this->weightedInputs = weightedInputs;
 			this->activationValues = activationValues;
 			this->dActivationValues = dActivationValues;
 		}
 
+		/// <summary>
+		/// Deconstructs this LayerResults.
+		/// </summary>
 		~LayerResults() {}
 	};
 
-	size_t layers; // Not including the input layer!
+	/// <summary>
+	/// The number of layers in the network, NOT including the input layer.
+	/// </summary>
+	size_t layers;
+
+	/// <summary>
+	/// The number of neurons in the input layer.
+	/// </summary>
 	size_t inputs;
+
+	/// <summary>
+	/// The number of neurons in the output layer.
+	/// </summary>
 	size_t outputs;
+
+	/// <summary>
+	/// The weights of the network in matrix forms.
+	/// The weights of a certain layer can be accessed by the index of the layer to get a matrix of weights out of the vector.
+	/// The rows of the matrix contain the weights going out from the neuron of the previous layer.
+	/// The columns of the matrix contain the weights arriving to the neuron of the next layer.
+	/// </summary>
 	Vector<Matrix<float>> weights;
+
+	/// <summary>
+	/// The biases of the network in vector forms.
+	/// The biases of a certain layer can be accessed by the index of the layer to get a vector of biases out of the outer vector.
+	/// </summary>
 	Vector<Vector<float>> biases;
 
+	/// <summary>
+	/// The learning rate of the backpropagation algorithm.
+	/// </summary>
 	float learningRate;
 
+	/// <summary>
+	/// Creates a random value between -e and e.
+	/// </summary>
+	/// <returns>The created value.</returns>
 	static float randE() {
 		double random = 2 * ((double)rand() / RAND_MAX) - 1;
 		double cubedRandom = random * random * random;
@@ -55,28 +119,55 @@ private:
 		return (float)(cubedRandom * M_E);
 	}
 
+	/// <summary>
+	/// The activation function of the backpropagation.
+	/// </summary>
+	/// <param name="xs">The input values.</param>
+	/// <returns>The crated values.</returns>
 	static Vector<float> activation(const Vector<float> xs) {
 		return Vector<float>::apply(xs, [](float x) -> float { return 1.f / (1.f + expf(-x)); });
 	}
 
+	/// <summary>
+	/// The the derivative of the activation function of the backpropagation.
+	/// </summary>
+	/// <param name="xs">The input values.</param>
+	/// <returns>The crated values.</returns>
 	static Vector<float> activationDerivative(const Vector<float> xs) {
 		Vector<float> activated = activation(xs);
 
 		return Vector<float>::apply(activated, [](float x) -> float { return  x * (1.f - x); });
 	}
 
+	/// <summary>
+	/// The loss/cost function.
+	/// </summary>
+	/// <param name="expected">The expected values.</param>
+	/// <param name="predicted">The predicted values.</param>
+	/// <returns>The squared difference between the expected and predicted values.</returns>
 	static Vector<float> loss(const Vector<float> expected, const  Vector<float> predicted) {
 		Vector<float> loss = predicted - expected;
 
 		return Vector<float>::scale(loss, loss);
 	}
 
+	/// <summary>
+	/// The derivative of the loss/cost function.
+	/// </summary>
+	/// <param name="expected">The expected values.</param>
+	/// <param name="predicted">The predicted values.</param>
+	/// <returns>The derivative of the squared difference between the expected and predicted values.</returns>
 	static Vector<float> lossDerivative(const Vector<float> expected, const Vector<float> predicted) {
 		Vector<float> loss = predicted - expected;
 
 		return Vector<float>::scale(loss, 2.f);
 	}
 
+	/// <summary>
+	/// Forward-propagates the network and saves every partial result to a structure.
+	/// </summary>
+	/// <param name="input">The inputs of the network.</param>
+	/// <returns>The saved structure.</returns>
 	std::vector<LayerResults> getPartialResults(const Vector<float>& input) const {
 		assert(input.getLength() == inputs);
 
@@ -98,6 +189,13 @@ private:
 		return result;
 	}
 
+	/// <summary>
+	/// Back-propagates the network. Calculates the weight and bias changes but only using one data.
+	/// </summary>
+	/// <param name="xs">The input.</param>
+	/// <param name="ys">The expected output.</param>
+	/// <param name="weightChanges">The calculated weight changes.</param>
+	/// <param name="biasChanges">The calculated bias changes.</param>
 	void backwardOneData(const Vector<float>& xs, const Vector<float>& ys, Vector<Matrix<float>>& weightChanges, Vector<Vector<float>>& biasChanges) const {
 		assert(xs.getLength() == inputs);
 		assert(ys.getLength() == outputs);
@@ -127,6 +225,11 @@ private:
 	}
 
 public:
+	/// <summary>
+	/// Creates a NeuralNetwork by the given values.
+	/// </summary>
+	/// <param name="layers">The number of neurons in each layer.</param>
+	/// <param name="learningRate">The learning rate of the backpropagation algorithm.</param>
 	NeuralNetwork(const std::vector<size_t>& layers, float learningRate) {
 		this->layers = layers.size() - 1;
 		this->inputs = layers[0];
@@ -160,8 +263,16 @@ public:
 		this->learningRate = learningRate;
 	}
 
+	/// <summary>
+	/// Deconstructs this NeuralNetwork.
+	/// </summary>
 	~NeuralNetwork() {}
 
+	/// <summary>
+	/// Forward-propagates the network.
+	/// </summary>
+	/// <param name="input">The inputs of the network.</param>
+	/// <returns>The computed output.</returns>
 	Vector<float> forward(const Vector<float>& input) const {
 		assert(input.getLength() == inputs);
 
@@ -177,6 +288,11 @@ public:
 		return result;
 	}
 
+	/// <summary>
+	/// Calculates the loss function for all of the inputs in the dataset.
+	/// </summary>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
+	/// <returns>The value of the total loss.</returns>
 	float totalLoss(const Matrix<Vector<float>>& dataset) const {
 		assert(dataset.getLengthX() == 2);
 
@@ -192,6 +308,11 @@ public:
 		return totalLoss / dataset.getLengthY();
 	}
 
+	/// <summary>
+	/// Back-propagates the network.
+	/// </summary>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
+	/// <returns>The new total loss.</returns>
 	float backward(const Matrix<Vector<float>>& dataset) {
 		assert(dataset.getLengthX() == 2);
 
@@ -221,6 +342,12 @@ public:
 		return totalLoss(dataset);
 	}
 
+	/// <summary>
+	/// Builds a network and trains it on the given dataset.
+	/// </summary>
+	/// <param name="layers">The number of neurons in each layer.</param>
+	/// <param name="learningRate">The learning rate of the backpropagation.</param>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
 	static void run(const std::vector<size_t>& layers, float learningRate, const Matrix<Vector<float>>& dataset) {
 		NeuralNetwork n(layers, learningRate);
 

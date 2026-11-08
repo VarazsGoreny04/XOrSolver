@@ -20,25 +20,25 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SimpleNeuron.h">
+    <ClInclude Include="SimpleNeuron.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NeuralNetwork.h">
+    <ClInclude Include="NeuralNetwork.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Matrix.h">
+    <ClInclude Include="Matrix.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vector.h">
+    <ClInclude Include="Vector.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComplexNeuron.h">
+    <ClInclude Include="ComplexNeuron.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleBackpropagatingNeuron.h">
+    <ClInclude Include="SimpleBackpropagatingNeuron.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComplexBackpropagatingNeuron.h">
+    <ClInclude Include="ComplexBackpropagatingNeuron.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

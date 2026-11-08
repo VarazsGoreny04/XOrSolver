@@ -1,9 +1,9 @@
 #include <iostream>
-#include "SimpleNeuron.h"
-#include "ComplexNeuron.h"
-#include "SimpleBackpropagatingNeuron.h"
-#include "ComplexBackpropagatingNeuron.h"
-#include "NeuralNetwork.h"
+#include "SimpleNeuron.hpp"
+#include "ComplexNeuron.hpp"
+#include "SimpleBackpropagatingNeuron.hpp"
+#include "ComplexBackpropagatingNeuron.hpp"
+#include "NeuralNetwork.hpp"
 
 Matrix<float> twiceStates = Matrix<float>(2, 5).make(
 	0, 0,

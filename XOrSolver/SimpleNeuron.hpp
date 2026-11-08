@@ -6,12 +6,12 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
-#include "Matrix.h"
+#include "Matrix.hpp"
 
 /// <summary>
-/// A very simple neuron with just one input and one output, but with proper backpropagation.
+/// A very simple neuron with just one input and one output.
 /// </summary>
-struct SimpleBackpropagatingNeuron
+struct SimpleNeuron
 {
 private:
 	/// <summary>
@@ -23,6 +23,11 @@ private:
 	/// The bias of this neuron.
 	/// </summary>
 	float bias;
+
+	/// <summary>
+	/// The epsilon value used in the finite derivative calculation.
+	/// </summary>
+	float epsilon;
 
 	/// <summary>
 	/// The learning rate of the backpropagation algorithm.
@@ -52,34 +57,24 @@ private:
 		return loss * loss;
 	}
 
-	/// <summary>
-	/// The derivative of the loss/cost function.
-	/// </summary>
-	/// <param name="expected">The expected value.</param>
-	/// <param name="predicted">The predicted value.</param>
-	/// <returns>The derivative of the squared difference between the expected and predicted values.</returns>
-	static float lossDerivative(const float expected, const float predicted) {
-		float loss = predicted - expected;
-
-		return 2.f * loss;
-	}
-
 public:
 	/// <summary>
-	/// Creates a SimpleBackpropagatingNeuron by the given values.
+	/// Creates a SimpleNeuron by the given values.
 	/// </summary>
+	/// <param name="epsilon">The epsilon value used in the finite derivative calculation.</param>
 	/// <param name="learningRate">The learning rate of the backpropagation algorithm.</param>
-	SimpleBackpropagatingNeuron(float learningRate) {
+	SimpleNeuron(float epsilon, float learningRate) {
 		this->weight = randE();
 		this->bias = 0.f;
 
+		this->epsilon = epsilon;
 		this->learningRate = learningRate;
 	}
 
 	/// <summary>
-	/// Deconstructs this SimpleBackpropagatingNeuron.
+	/// Deconstructs this SimpleNeuron.
 	/// </summary>
-	~SimpleBackpropagatingNeuron() {}
+	~SimpleNeuron() { }
 
 	/// <summary>
 	/// Forward-propagates the network.
@@ -112,29 +107,34 @@ public:
 	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
 	/// <returns>The new total loss.</returns>
 	float backward(const Matrix<float>& dataset) {
-		assert(dataset.getLengthX() == 2);
+		float initialWeight = weight;
+		float initialBias = bias;
 
-		float weightChange = 0.f;
-		float biasChange = 0.f;
+		float currentLoss = totalLoss(dataset);
 
-		for (size_t i = 0; i < dataset.getLengthY(); ++i) {
-			float x1 = dataset.at(0, i);
-			float y = dataset.at(1, i);
+		this->weight += epsilon;
 
-			float temp = lossDerivative(y, forward(x1));
+		float weightAddLoss = totalLoss(dataset);
 
-			weightChange += temp * x1;
-			biasChange += temp;
-		}
+		this->weight = initialWeight;
+		this->bias += epsilon;
 
-		this->weight -= (weightChange / dataset.getLengthY()) * learningRate;
-		this->bias -= (biasChange / dataset.getLengthY()) * learningRate;
+		float biasAddLoss = totalLoss(dataset);
+
+		this->weight = initialWeight + (currentLoss - weightAddLoss) * learningRate;
+		this->bias = initialBias + (currentLoss - biasAddLoss) * learningRate;
 
 		return totalLoss(dataset);
 	}
 
-	static void run(float learningRate, const Matrix<float>& dataset) {
-		SimpleBackpropagatingNeuron n(learningRate);
+	/// <summary>
+	/// Builds a network and trains it on the given dataset.
+	/// </summary>
+	/// <param name="epsilon">The epsilon value used in the finite derivative.</param>
+	/// <param name="learningRate">The learning rate of the backpropagation.</param>
+	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
+	static void run(float epsilon, float learningRate, const Matrix<float>& dataset) {
+		SimpleNeuron n(epsilon, learningRate);
 
 		std::cout << "Initial weight: " << n.weight << std::endl
 			<< "Initial bias: " << n.bias << std::endl << std::endl;

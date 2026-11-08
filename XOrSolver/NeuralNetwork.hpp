@@ -5,8 +5,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <vector>
-#include "Vector.h"
-#include "Matrix.h"
+#include "Vector.hpp"
+#include "Matrix.hpp"
 
 /// <summary>
 /// A neural network.

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <functional>
 #include <stdlib.h>
-#include "Vector.h"
+#include "Vector.hpp"
 
 /// <summary>
 /// A mathematical matrix.
@@ -74,7 +74,7 @@ public:
 	}
 
 	/// <summary>
-	/// Creates a vector with the given size.
+	/// Creates a matrix with the given size.
 	/// </summary>
 	/// <param name="lengthX">The number of columns in the matrix.</param>
 	/// <param name="lengthY">The number of rows in the matrix.</param>
@@ -156,7 +156,7 @@ public:
 	/// <param name="x">The column index of the element.</param>
 	/// <param name="y">The row index of the element.</param>
 	/// <param name="value">The value.</param>
-	/// <returns>This vector.</returns>
+	/// <returns>This matrix.</returns>
 	Matrix<T>& put(const size_t x, const size_t y, const T value) {
 		assert(x < lengthX && y < lengthY);
 
@@ -323,7 +323,7 @@ public:
 	/// <param name="A">The matrix.</param>
 	/// <param name="predicate">The function.</param>
 	/// <returns>The created matrix.</returns>
-	static Matrix<T> apply(const Matrix<T>& A, std::function<T(const T)> predicate) {
+	static Matrix<T> apply(const Matrix<T>& A, const std::function<T(const T)> predicate) {
 		Matrix<T> result(A.lengthX, A.lengthY);
 
 		for (size_t i = 0; i < A.length; ++i)

@@ -126,13 +126,13 @@
     <ClCompile Include="XOrSolver.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ComplexBackpropagatingNeuron.h" />
-    <ClInclude Include="SimpleBackpropagatingNeuron.h" />
-    <ClInclude Include="ComplexNeuron.h" />
-    <ClInclude Include="Matrix.h" />
-    <ClInclude Include="NeuralNetwork.h" />
-    <ClInclude Include="SimpleNeuron.h" />
-    <ClInclude Include="Vector.h" />
+    <ClInclude Include="ComplexBackpropagatingNeuron.hpp" />
+    <ClInclude Include="SimpleBackpropagatingNeuron.hpp" />
+    <ClInclude Include="ComplexNeuron.hpp" />
+    <ClInclude Include="Matrix.hpp" />
+    <ClInclude Include="NeuralNetwork.hpp" />
+    <ClInclude Include="SimpleNeuron.hpp" />
+    <ClInclude Include="Vector.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

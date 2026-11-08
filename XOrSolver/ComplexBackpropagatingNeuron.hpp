@@ -6,12 +6,12 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
-#include "Matrix.h"
+#include "Matrix.hpp"
 
 /// <summary>
-/// A neuron with two inputs and one output.
+/// A neuron with two inputs and one output, but with proper backpropagation.
 /// </summary>
-struct ComplexNeuron
+struct ComplexBackpropagatingNeuron
 {
 private:
 	/// <summary>
@@ -28,11 +28,6 @@ private:
 	/// The bias of this neuron.
 	/// </summary>
 	float bias;
-
-	/// <summary>
-	/// The epsilon value used in the finite derivative calculation.
-	/// </summary>
-	float epsilon;
 
 	/// <summary>
 	/// The learning rate of the backpropagation algorithm.
@@ -60,6 +55,17 @@ private:
 	}
 
 	/// <summary>
+	/// The the derivative of the activation function of the backpropagation.
+	/// </summary>
+	/// <param name="x">The input value.</param>
+	/// <returns>The crated value.</returns>
+	static float activationDerivative(const float x) {
+		float temp = activation(x);
+
+		return temp * (1.f - temp);
+	}
+
+	/// <summary>
 	/// The loss/cost function.
 	/// </summary>
 	/// <param name="expected">The expected value.</param>
@@ -71,25 +77,35 @@ private:
 		return loss * loss;
 	}
 
+	/// <summary>
+	/// The derivative of the loss/cost function.
+	/// </summary>
+	/// <param name="expected">The expected value.</param>
+	/// <param name="predicted">The predicted value.</param>
+	/// <returns>The derivative of the squared difference between the expected and predicted values.</returns>
+	static float lossDerivative(const float expected, const float predicted) {
+		float loss = predicted - expected;
+
+		return 2.f * loss;
+	}
+
 public:
 	/// <summary>
-	/// Creates a ComplexNeuron by the given values.
+	/// Creates a ComplexBackpropagatingNeuron by the given values.
 	/// </summary>
-	/// <param name="epsilon">The epsilon value used in the finite derivative calculation.</param>
 	/// <param name="learningRate">The learning rate of the backpropagation algorithm.</param>
-	ComplexNeuron(float epsilon, float learningRate) {
+	ComplexBackpropagatingNeuron(float learningRate) {
 		this->weight1 = randE();
 		this->weight2 = randE();
 		this->bias = 0.f;
 
-		this->epsilon = epsilon;
 		this->learningRate = learningRate;
 	}
 
 	/// <summary>
-	/// Deconstructs this ComplexNeuron.
+	/// Deconstructs this ComplexBackpropagatingNeuron.
 	/// </summary>
-	~ComplexNeuron() {}
+	~ComplexBackpropagatingNeuron() {}
 
 	/// <summary>
 	/// Forward-propagates the network.
@@ -123,41 +139,40 @@ public:
 	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
 	/// <returns>The new total loss.</returns>
 	float backward(const Matrix<float>& dataset) {
-		float initialWeight1 = weight1;
-		float initialWeight2 = weight2;
-		float initialBias = bias;
+		assert(dataset.getLengthX() == 3);
 
-		float currentLoss = totalLoss(dataset);
+		float weightChange1 = 0.f;
+		float weightChange2 = 0.f;
+		float biasChange = 0.f;
 
-		this->weight1 += epsilon;
+		for (size_t i = 0; i < dataset.getLengthY(); ++i) {
+			float x1 = dataset.at(0, i);
+			float x2 = dataset.at(1, i);
+			float y = dataset.at(2, i);
 
-		float weightAddLoss1 = totalLoss(dataset);
+			float ad = activationDerivative(forward(x1, x2));
+			float ld = lossDerivative(y, forward(x1, x2));
+			float ldXAd = ld * ad;
 
-		this->weight1 = initialWeight1;
-		this->weight2 += epsilon;
+			weightChange1 += ldXAd * x1;
+			weightChange2 += ldXAd * x2;
+			biasChange += ldXAd;
+		}
 
-		float weightAddLoss2 = totalLoss(dataset);
-
-		this->weight2 = initialWeight2;
-		this->bias += epsilon;
-
-		float biasAddLoss = totalLoss(dataset);
-
-		this->weight1 = initialWeight1 + (currentLoss - weightAddLoss1) * learningRate;
-		this->weight2 = initialWeight2 + (currentLoss - weightAddLoss2) * learningRate;
-		this->bias = initialBias + (currentLoss - biasAddLoss) * learningRate;
+		this->weight1 -= (weightChange1 / dataset.getLengthY()) * learningRate;
+		this->weight2 -= (weightChange2 / dataset.getLengthY()) * learningRate;
+		this->bias -= (biasChange / dataset.getLengthY()) * learningRate;
 
 		return totalLoss(dataset);
 	}
-	
+
 	/// <summary>
 	/// Builds a network and trains it on the given dataset.
 	/// </summary>
-	/// <param name="epsilon">The epsilon value used in the finite derivative.</param>
 	/// <param name="learningRate">The learning rate of the backpropagation.</param>
 	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
-	static void run(float epsilon, float learningRate, const Matrix<float>& dataset) {
-		ComplexNeuron n(epsilon, learningRate);
+	static void run(float learningRate, const Matrix<float>& dataset) {
+		ComplexBackpropagatingNeuron n(learningRate);
 
 		std::cout << "Initial weight1: " << n.weight1 << std::endl
 			<< "Initial weight1: " << n.weight2 << std::endl

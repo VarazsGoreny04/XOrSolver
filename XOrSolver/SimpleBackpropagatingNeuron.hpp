@@ -39,8 +39,8 @@ private:
 	/// </summary>
 	/// <returns>The created value.</returns>
 	static float randE() {
-		double random = 2 * ((double)rand() / RAND_MAX) - 1;
-		double cubedRandom = random * random * random;
+		const double random = 2 * ((double)rand() / RAND_MAX) - 1;
+		const double cubedRandom = random * random * random;
 
 		return (float)(cubedRandom * M_E);
 	}
@@ -52,7 +52,7 @@ private:
 	/// <param name="predicted">The predicted value.</param>
 	/// <returns>The squared difference between the expected and predicted values.</returns>
 	static float loss(const float expected, const float predicted) {
-		float loss = predicted - expected;
+		const float loss = predicted - expected;
 
 		return loss * loss;
 	}
@@ -64,7 +64,7 @@ private:
 	/// <param name="predicted">The predicted value.</param>
 	/// <returns>The derivative of the squared difference between the expected and predicted values.</returns>
 	static float lossDerivative(const float expected, const float predicted) {
-		float loss = predicted - expected;
+		const float loss = predicted - expected;
 
 		return 2.f * loss;
 	}
@@ -123,10 +123,10 @@ public:
 		float biasChange = 0.f;
 
 		for (size_t i = 0; i < dataset.getLengthY(); ++i) {
-			float x1 = dataset.at(0, i);
-			float y = dataset.at(1, i);
+			const float x1 = dataset.at(0, i);
+			const float y = dataset.at(1, i);
 
-			float temp = lossDerivative(y, forward(x1));
+			const float temp = lossDerivative(y, forward(x1));
 
 			weightChange += temp * x1;
 			biasChange += temp;

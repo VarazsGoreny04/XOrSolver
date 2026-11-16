@@ -44,8 +44,8 @@ private:
 	/// </summary>
 	/// <returns>The created value.</returns>
 	static float randE() {
-		double random = 2 * ((double)rand() / RAND_MAX) - 1;
-		double cubedRandom = random * random * random;
+		const double random = 2 * ((double)rand() / RAND_MAX) - 1;
+		const double cubedRandom = random * random * random;
 
 		return (float)(cubedRandom * M_E);
 	}
@@ -57,7 +57,7 @@ private:
 	/// <param name="predicted">The predicted value.</param>
 	/// <returns>The squared difference between the expected and predicted values.</returns>
 	static float loss(const float expected, const float predicted) {
-		float loss = predicted - expected;
+		const float loss = predicted - expected;
 
 		return loss * loss;
 	}
@@ -112,19 +112,19 @@ public:
 	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
 	/// <returns>The new total loss.</returns>
 	float backward(const Matrix<float>& dataset) {
-		float initialWeight = weight;
-		float initialBias = bias;
+		const float initialWeight = weight;
+		const float initialBias = bias;
 
-		float currentLoss = totalLoss(dataset);
+		const float currentLoss = totalLoss(dataset);
 
 		this->weight += epsilon;
 
-		float weightAddLoss = totalLoss(dataset);
+		const float weightAddLoss = totalLoss(dataset);
 
 		this->weight = initialWeight;
 		this->bias += epsilon;
 
-		float biasAddLoss = totalLoss(dataset);
+		const float biasAddLoss = totalLoss(dataset);
 
 		this->weight = initialWeight + (currentLoss - weightAddLoss) * learningRate;
 		this->bias = initialBias + (currentLoss - biasAddLoss) * learningRate;

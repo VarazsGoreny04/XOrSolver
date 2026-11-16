@@ -44,8 +44,8 @@ private:
 	/// </summary>
 	/// <returns>The created value.</returns>
 	static float randE() {
-		double random = 2 * ((double)rand() / RAND_MAX) - 1;
-		double cubedRandom = random * random * random;
+		const double random = 2 * ((double)rand() / RAND_MAX) - 1;
+		const double cubedRandom = random * random * random;
 
 		return (float)(cubedRandom * M_E);
 	}
@@ -65,7 +65,7 @@ private:
 	/// <param name="x">The input value.</param>
 	/// <returns>The crated value.</returns>
 	static float activationDerivative(const float x) {
-		float temp = activation(x);
+		const float temp = activation(x);
 
 		return temp * (1.f - temp);
 	}
@@ -77,7 +77,7 @@ private:
 	/// <param name="predicted">The predicted value.</param>
 	/// <returns>The squared difference between the expected and predicted values.</returns>
 	static float loss(const float expected, const float predicted) {
-		float loss = predicted - expected;
+		const float loss = predicted - expected;
 
 		return loss * loss;
 	}
@@ -89,7 +89,7 @@ private:
 	/// <param name="predicted">The predicted value.</param>
 	/// <returns>The derivative of the squared difference between the expected and predicted values.</returns>
 	static float lossDerivative(const float expected, const float predicted) {
-		float loss = predicted - expected;
+		const float loss = predicted - expected;
 
 		return 2.f * loss;
 	}
@@ -151,13 +151,13 @@ public:
 		float biasChange = 0.f;
 
 		for (size_t i = 0; i < dataset.getLengthY(); ++i) {
-			float x1 = dataset.at(0, i);
-			float x2 = dataset.at(1, i);
-			float y = dataset.at(2, i);
+			const float x1 = dataset.at(0, i);
+			const float x2 = dataset.at(1, i);
+			const float y = dataset.at(2, i);
 
-			float ad = activationDerivative(forward(x1, x2));
-			float ld = lossDerivative(y, forward(x1, x2));
-			float ldXAd = ld * ad;
+			const float ad = activationDerivative(forward(x1, x2));
+			const float ld = lossDerivative(y, forward(x1, x2));
+			const float ldXAd = ld * ad;
 
 			weightChange1 += ldXAd * x1;
 			weightChange2 += ldXAd * x2;

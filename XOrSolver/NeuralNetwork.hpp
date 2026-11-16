@@ -118,8 +118,8 @@ private:
 	/// </summary>
 	/// <returns>The created value.</returns>
 	static float randE() {
-		double random = 2 * ((double)rand() / RAND_MAX) - 1;
-		double cubedRandom = random * random * random;
+		const double random = 2 * ((double)rand() / RAND_MAX) - 1;
+		const double cubedRandom = random * random * random;
 
 		return (float)(cubedRandom * M_E);
 	}
@@ -139,7 +139,7 @@ private:
 	/// <param name="xs">The input values.</param>
 	/// <returns>The crated values.</returns>
 	static Vector<float> activationDerivative(const Vector<float> xs) {
-		Vector<float> activated = activation(xs);
+		const Vector<float> activated = activation(xs);
 
 		return Vector<float>::apply(activated, [](float x) -> float { return  x * (1.f - x); });
 	}
@@ -151,7 +151,7 @@ private:
 	/// <param name="predicted">The predicted values.</param>
 	/// <returns>The squared difference between the expected and predicted values.</returns>
 	static Vector<float> loss(const Vector<float> expected, const  Vector<float> predicted) {
-		Vector<float> loss = predicted - expected;
+		const Vector<float> loss = predicted - expected;
 
 		return Vector<float>::scale(loss, loss);
 	}
@@ -163,7 +163,7 @@ private:
 	/// <param name="predicted">The predicted values.</param>
 	/// <returns>The derivative of the squared difference between the expected and predicted values.</returns>
 	static Vector<float> lossDerivative(const Vector<float> expected, const Vector<float> predicted) {
-		Vector<float> loss = predicted - expected;
+		const Vector<float> loss = predicted - expected;
 
 		return Vector<float>::scale(loss, 2.f);
 	}
@@ -181,12 +181,12 @@ private:
 		std::vector<LayerResults> result{ LayerResults(activationValues) };
 
 		for (size_t i = 0; i < layers; ++i) {
-			Matrix<float> weights = this->weights.at(i);
-			Vector<float> biases = this->biases.at(i);
+			const Matrix<float> weights = this->weights.at(i);
+			const Vector<float> biases = this->biases.at(i);
 
-			Vector<float> weightedInputs = weights * activationValues + biases;
+			const Vector<float> weightedInputs = weights * activationValues + biases;
 			activationValues = activation(weightedInputs);
-			Vector<float> dActivationValues = activationDerivative(weightedInputs);
+			const Vector<float> dActivationValues = activationDerivative(weightedInputs);
 
 			result.push_back(LayerResults(weightedInputs, activationValues, dActivationValues));
 		}
@@ -284,8 +284,8 @@ public:
 		Vector<float> result(input);
 
 		for (size_t i = 0; i < layers; ++i) {
-			Matrix<float> weight = Matrix<float>(weights.at(i));
-			Vector<float> bias = Vector<float>(biases.at(i));
+			const Matrix<float> weight = Matrix<float>(weights.at(i));
+			const Vector<float> bias = Vector<float>(biases.at(i));
 
 			result = activation(weight * result + bias);
 		}
@@ -304,7 +304,7 @@ public:
 		float totalLoss = 0.f;
 
 		for (size_t i = 0; i < dataset.getLengthY(); ++i) {
-			Vector<float> temp = loss(dataset.at(1, i), forward(dataset.at(0, i)));
+			const Vector<float> temp = loss(dataset.at(1, i), forward(dataset.at(0, i)));
 
 			for (size_t i = 0; i < temp.getLength(); ++i)
 				totalLoss += temp.at(i);
@@ -337,7 +337,7 @@ public:
 			allBiasChanges = allBiasChanges + biasChanges;
 		}
 
-		float scalar = learningRate / dataset.getLengthY();
+		const float scalar = learningRate / dataset.getLengthY();
 
 		weights = weights - Vector<Matrix<float>>::apply(allWeightChanges,
 			[scalar](const Matrix<float>& A) -> Matrix<float> { return Matrix<float>::scale(A, scalar); });

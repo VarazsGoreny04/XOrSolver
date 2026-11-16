@@ -1,7 +1,12 @@
 #pragma once
 
-#undef NDEBUG
-#include <cassert>
+#ifdef NDEBUG
+	#undef NDEBUG
+	#include <cassert>
+	#define NDEBUG
+#else
+	#include <cassert>
+#endif // NDEBUG
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <vector>
@@ -349,6 +354,8 @@ public:
 	/// <param name="learningRate">The learning rate of the backpropagation.</param>
 	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
 	static void run(const std::vector<size_t>& layers, float learningRate, const Matrix<Vector<float>>& dataset) {
+		assert(0);
+		
 		NeuralNetwork n(layers, learningRate);
 
 		std::cout << "Initial weights: " << n.weights << std::endl

@@ -1,7 +1,12 @@
 #pragma once
 
-#undef NDEBUG
-#include <cassert>
+#ifdef NDEBUG
+	#undef NDEBUG
+	#include <cassert>
+	#define NDEBUG
+#else
+	#include <cassert>
+#endif // NDEBUG
 #include <iostream>
 #include <functional>
 #include <stdlib.h>

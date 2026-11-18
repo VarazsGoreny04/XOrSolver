@@ -1,15 +1,19 @@
 #pragma once
 
 #ifdef NDEBUG
-	#undef NDEBUG
-	#include <cassert>
-	#define NDEBUG
+#undef NDEBUG
+#include <cassert>
+#define NDEBUG
 #else
-	#include <cassert>
+#include <cassert>
 #endif // NDEBUG
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <vector>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
 #include "Vector.hpp"
 #include "Matrix.hpp"
 
@@ -348,14 +352,189 @@ public:
 	}
 
 	/// <summary>
+	/// Saves a neural network to a file.
+	/// </summary>
+	/// <param name="nn">The neural network.</param>
+	/// <param name="fileName">The name of the file.</param>
+	static void saveToFile(const NeuralNetwork& nn, const char* fileName) {
+		std::ofstream file(fileName);
+
+		if (!file.is_open())
+		{
+			std::cerr << "Error opening the file! (" << fileName << ")" << std::endl;
+			exit(1);
+		}
+
+		const size_t length = nn.biases.getLength();
+
+		for (size_t i = 0; i < length; ++i)
+			file << nn.weights.at(i).getLengthX() << '\t';
+		file << nn.weights.at(length - 1).getLengthY() << '\n';
+
+		file << nn.learningRate << '\n';
+
+		for (size_t i = 0; i < length; ++i)
+		{
+			const Matrix<float> temp = nn.weights.at(i);
+
+			for (size_t y = 0; y < length; ++y)
+			{
+				for (size_t x = 0; x < length - 1; ++x)
+					file << temp.at(x, y) << '\t';
+				file << temp.at(length - 1, y) << '\n';
+			}
+		}
+
+		for (size_t i = 0; i < length; ++i)
+		{
+			const Vector<float> temp = nn.biases.at(i);
+
+			for (size_t y = 0; y < length - 1; ++y)
+				file << temp.at(y) << '\t';
+			file << temp.at(length - 1) << '\n';
+		}
+
+		file.close();
+	}
+
+	/// <summary>
+	/// Loads a neural network form a file.
+	/// </summary>
+	/// <param name="fileName">The name of the file.</param>
+	/// <returns>The neural network.</returns>
+	static NeuralNetwork loadFromFile(const char* fileName) {
+		std::ifstream file(fileName);
+
+		if (!file.is_open())
+		{
+			std::cerr << "Error opening the file! (" << fileName << ")" << std::endl;
+			exit(1);
+		}
+
+		std::string line;
+
+		if (!std::getline(file, line))
+		{
+			std::cerr << "The data in the file was corrupted!" << std::endl;
+			exit(1);
+		}
+
+		std::vector<size_t> layers;
+
+		{
+			std::stringstream lineStream(line);
+			std::string token;
+
+			while (std::getline(lineStream, token, '\t'))
+				layers.push_back(stoi(token));
+		}
+
+		float learningRate;
+
+		if (std::getline(file, line))
+			learningRate = stof(line);
+		else
+			exit(1);
+
+		const size_t layerCount = layers.size();
+		Vector<Matrix<float>> weights(layerCount - 1);
+		Vector<Vector<float>> biases(layerCount - 1);
+
+		{
+			size_t prevLayerSize = layers.at(0);
+			size_t nextLayerSize;
+
+			for (size_t i = 1; i < layerCount; ++i)
+			{
+				nextLayerSize = layers.at(i);
+				Matrix<float> layerWeights(prevLayerSize, nextLayerSize);
+
+				for (size_t y = 0; y < nextLayerSize; ++y)
+				{
+					if (!std::getline(file, line))
+					{
+						std::cerr << "The data in the file was corrupted!" << std::endl;
+						exit(1);
+					}
+
+					std::vector<float> tokens;
+
+					{
+						std::stringstream lineStream(line);
+						std::string token;
+
+						while (std::getline(lineStream, token, '\t'))
+							tokens.push_back(stof(token));
+					}
+
+					if (tokens.size() != prevLayerSize)
+					{
+						std::cerr << "The data in the file was corrupted!" << std::endl;
+						exit(1);
+					}
+
+					for (size_t x = 0; x < prevLayerSize; ++x)
+						layerWeights.put(x, y, tokens[x]);
+				}
+
+				weights.put(i - 1, layerWeights);
+				prevLayerSize = nextLayerSize;
+			}
+		}
+
+		{
+			size_t layerSize;
+
+			for (size_t i = 1; i < layerCount; ++i)
+			{
+				layerSize = layers.at(i);
+				Vector<float> layerBiases(layerSize);
+
+				if (!std::getline(file, line))
+				{
+					std::cerr << "The data in the file was corrupted!" << std::endl;
+					exit(1);
+				}
+
+				std::vector<float> tokens;
+
+				{
+					std::stringstream lineStream(line);
+					std::string token;
+
+					while (std::getline(lineStream, token, '\t'))
+						tokens.push_back(stof(token));
+				}
+
+				if (tokens.size() != layerSize)
+				{
+					std::cerr << "The data in the file was corrupted!" << std::endl;
+					exit(1);
+				}
+
+				for (size_t x = 0; x < layerSize; ++x)
+					layerBiases.put(x, tokens[x]);
+
+				biases.put(i - 1, layerBiases);
+			}
+		}
+
+		file.close();
+
+		NeuralNetwork nn(layers, learningRate);
+		nn.weights = weights;
+		nn.biases = biases;
+
+		return nn;
+	}
+
+	/// <summary>
 	/// Builds a network and trains it on the given dataset.
 	/// </summary>
 	/// <param name="layers">The number of neurons in each layer.</param>
 	/// <param name="learningRate">The learning rate of the backpropagation.</param>
 	/// <param name="dataset">The set of input and expected output values in a matrix.</param>
 	static void run(const std::vector<size_t>& layers, float learningRate, const Matrix<Vector<float>>& dataset) {
-		assert(0);
-		
 		NeuralNetwork n(layers, learningRate);
 
 		std::cout << "Initial weights: " << n.weights << std::endl
@@ -368,6 +547,8 @@ public:
 			//std::cout << "Current loss: " << loss << "  Current weights: " << n.weights << "  Current biases: " << n.biases << std::endl << std::endl;
 		}
 
+		//NeuralNetwork n = NeuralNetwork::loadFromFile("nn.txt");
+
 		std::cout << "----------------------------" << std::endl << "Final loss: " << n.totalLoss(dataset) << std::endl;
 
 		for (size_t i = 0; i < dataset.getLengthY(); ++i)
@@ -375,5 +556,7 @@ public:
 
 		std::cout << std::endl << "Final weights: " << n.weights << std::endl
 			<< "Final biases: " << n.biases << std::endl << std::endl;
+
+		//NeuralNetwork::saveToFile(n, "nn.txt");
 	}
 };
